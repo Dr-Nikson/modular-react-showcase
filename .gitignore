@@ -9,12 +9,7 @@ node_modules/
 reports
 phantomjsdriver.log
 jspm_packages
-public/assets/*
+build/*
+!build/.gitkeep
 log/*
-public/assets/*
 *.sublime-*
-public/static/*
-
-#!public/static/favicon_files
-#!public/static/img
-public/static/css
