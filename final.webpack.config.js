@@ -4,6 +4,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const PreloadWebpackPlugin = require('preload-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 // const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 const stats = require('./webpack/stats');
@@ -70,6 +71,8 @@ module.exports = function(env) {
 
     // preload chunks
     new PreloadWebpackPlugin(),
+
+    new BundleAnalyzerPlugin(),
   ];
 
   if (isProd) {
