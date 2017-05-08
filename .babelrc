@@ -1,4 +1,8 @@
 {
+  "plugins": [
+    "syntax-dynamic-import",
+    "transform-class-properties"
+  ],
   "presets": [
     [
       "env",
@@ -6,8 +10,18 @@
         "targets": {
           "node": "current",
           "browsers": "last 2 versions"
-        }
+        },
+        "modules": false,
+        "loose": true
       }
-    ]
-  ]
+    ],
+    "react"
+  ],
+  "env": {
+    "development": {
+      "plugins": [
+        "react-hot-loader/babel"
+      ]
+    }
+  }
 }

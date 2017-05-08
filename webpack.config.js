@@ -1,6 +1,5 @@
-import path from 'path'
-import webpack from 'webpack'
-
+const path = require('path')
+const webpack = require('webpack')
 
 const baseConfig = {
   output: {
@@ -28,20 +27,46 @@ const baseConfig = {
       }
     ),*/
     // Shared code
-    new webpack.optimize.CommonsChunkPlugin(
+    /*new webpack.optimize.CommonsChunkPlugin(
       {
         name: 'vendor',
         filename: '[name].bundle.js',
         minChunks: Infinity
       }
-    )
+    )*/
   ],
   module: {
     rules: [
       // JavaScript / ES6
       {
         test: /\.jsx?$/,
-        use: 'babel-loader'
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            babelrc: false,
+            presets: [
+              [
+                "env",
+                {
+                  "targets": {
+                    "node": "current",
+                  },
+                  "modules": false,
+                  "loose": true
+                }
+              ]
+            ],
+            "env": {
+              "development": {
+                "plugins": [
+                  "react-hot-loader/babel"
+                ]
+              }
+            }
+          },
+        },
+
       },
       // Images
       // Inline base64 URLs for <=8k images, direct URLs for the rest
@@ -66,4 +91,4 @@ const baseConfig = {
   },
 }
 
-export default baseConfig
+module.exports = baseConfig
