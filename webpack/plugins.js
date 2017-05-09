@@ -100,7 +100,9 @@ module.exports = function(config) {
       ],
     }),
 
-    new BundleAnalyzerPlugin(),
+    new BundleAnalyzerPlugin({
+      analyzerMode: isProd ? 'static' : 'server',
+    }),
   ].filter(p => !!p)
 
   return plugins
