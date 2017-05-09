@@ -5,10 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-dev": "cross-env NODE_ENV=development webpack --config ./dev.webpack.config.babel.js --progress",
-    "build-prod": "cross-env NODE_ENV=production webpack --config ./dev.webpack.config.babel.js --progress",
-    "build": "cross-env NODE_ENV=production webpack --config ./final.webpack.config.js --progress --env.prod=true",
-    "start": "cross-env NODE_ENV=production webpack-dev-server --config ./final.webpack.config.js --env.prod=true"
+    "build": "cross-env NODE_ENV=production webpack --config ./webpack.config.js --progress --env.prod=true",
+    "start": "cross-env NODE_ENV=development webpack-dev-server --config ./webpack.config.js"
   },
   "repository": {
     "type": "git",

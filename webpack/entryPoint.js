@@ -1,6 +1,6 @@
 
 module.exports = function(config) {
-  const { isProd } = config
+  const { isProd, host, port } = config
   const entryPoint = [
     'babel-polyfill',
 
