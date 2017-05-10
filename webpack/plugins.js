@@ -10,7 +10,7 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 
 module.exports = function(config) {
-  const { isProd, nodeEnv, serviceWorkerBuild } = config
+  const { isProd, nodeEnv, nodeBuild, serviceWorkerBuild } = config
   // const nodeEnv = env && env.prod ? 'production' : 'development';
   // const isProd = nodeEnv === 'production';
   // const serviceWorkerBuild = env && env.sw;
@@ -33,8 +33,8 @@ module.exports = function(config) {
     new ExtractTextPlugin('style-[contenthash:8].css'),
 
     // create index.html
-    new HtmlWebpackPlugin({
-      template: './template.ejs',
+    !nodeBuild && new HtmlWebpackPlugin({
+      template: './client/template.ejs',
       inject: true,
       production: isProd,
       minify: isProd && {
@@ -52,17 +52,17 @@ module.exports = function(config) {
     }),
 
     // make sure script tags are async to avoid blocking html render
-    new ScriptExtHtmlWebpackPlugin({
+    !nodeBuild && new ScriptExtHtmlWebpackPlugin({
       defaultAttribute: 'async',
       preload: /\.js$/,
       // preload: /^chunk-/,
     }),
 
     // preload chunks
-    new PreloadWebpackPlugin(),
+    !nodeBuild && new PreloadWebpackPlugin(),
 
     // minify remove some of the dead code
-    isProd && new UglifyJSPlugin({
+    isProd && !nodeBuild && new UglifyJSPlugin({
       compress: {
         warnings: false,
         screw_ie8: true,
@@ -78,7 +78,7 @@ module.exports = function(config) {
     }),
 
     // make hot reloading work
-    !isProd && new webpack.HotModuleReplacementPlugin(),
+    !isProd && !nodeBuild && new webpack.HotModuleReplacementPlugin(),
 
     // show module names instead of numbers in webpack stats
     !isProd && new webpack.NamedModulesPlugin(),
@@ -101,7 +101,8 @@ module.exports = function(config) {
     }),
 
     new BundleAnalyzerPlugin({
-      analyzerMode: isProd ? 'static' : 'server',
+      analyzerMode: isProd || nodeBuild ? 'static' : 'server',
+      openAnalyzer: isProd && !nodeBuild,
     }),
   ].filter(p => !!p)
 

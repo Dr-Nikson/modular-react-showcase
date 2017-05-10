@@ -1,35 +1,42 @@
 const webpack = require('webpack')
 const path = require('path')
+const fs = require('fs')
+const nodeExternals = require('webpack-node-externals')
 const stats = require('./webpack/stats')
 const getPlugins = require('./webpack/plugins')
 const getEntryPoint = require('./webpack/entryPoint')
 const getCssLoader = require('./webpack/cssLoader')
 
+const setBabelTarget = require('./webpack/setBabelTarget')
+const babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, './.babelrc'), 'utf8'))
 
 module.exports = function(env) {
   const config = {
     nodeEnv: env && env.prod ? 'production' : 'development',
     isProd: !!(env && env.prod),
-    serviceWorkerBuild: env && env.sw,
+    serviceWorkerBuild: !!(env && env.sw),
+    nodeBuild: !!(env && env.node),
     // replace localhost with 0.0.0.0 if you want to access
     // your app from wifi or a virtual machine
     host: process.env.HOST || 'localhost',
     port: process.env.PORT || 3000,
-    sourcePath: path.join(__dirname, './src/client/'),
-    buildDirectory: path.join(__dirname, './build/public'),
+    sourcePath: path.join(__dirname, `./src/`),
+    buildDirectory: path.join(__dirname, `./build/${!!(env && env.node) ? 'private' : 'public'}`),
   }
-  const { sourcePath, buildDirectory, isProd, port, host } = config
+  const { sourcePath, buildDirectory, isProd, nodeBuild, port, host } = config
 
   return {
-    devtool: isProd && 'cheap-module-source-map',
+    devtool: nodeBuild ? 'source-map' : !isProd && 'cheap-module-source-map',
     context: sourcePath,
+    target: nodeBuild ? 'node' : 'web',
+    externals: [nodeExternals()],
     entry: {
       main: getEntryPoint(config),
     },
     output: {
       path: buildDirectory,
       publicPath: '/',
-      filename: '[name]-[hash:8].js',
+      filename: nodeBuild ? 'index.js' : '[name]-[hash:8].js',
       chunkFilename: 'chunk-[name]-[chunkhash:8].js',
     },
     module: {
@@ -52,7 +59,13 @@ module.exports = function(env) {
         {
           test: /\.(js|jsx)$/,
           exclude: /node_modules/,
-          use: ['babel-loader'],
+          use: {
+            loader: 'babel-loader',
+            options: Object.assign(
+              { babelrc: false },
+              setBabelTarget(babelRc, nodeBuild ? 'node' : 'browsers')
+            ),
+          },
         },
       ],
     },

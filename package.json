@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf build/public && cross-env NODE_ENV=production webpack --config ./webpack.config.js --progress --env.prod=true",
-    "start": "cross-env NODE_ENV=development webpack-dev-server --config ./webpack.config.js"
+    "build-server": "rimraf build/private && cross-env NODE_ENV=development webpack --config ./webpack.config.js --progress --watch --colors --display-error-details --env.node=true",
+    "start-old": "cross-env NODE_ENV=development webpack-dev-server --config ./webpack.config.js",
+    "start": "cross-env NODE_ENV=development yarn run build-server"
   },
   "repository": {
     "type": "git",
@@ -22,7 +24,6 @@
   "license": "MIT",
   "homepage": "https://bitbucket.org/bits-plz/au-ui#readme",
   "dependencies": {
-    "babel-runtime": "^6.23.0",
     "express": "^4.15.2",
     "react": "^15.5.4",
     "react-dom": "^15.5.4"
@@ -42,11 +43,10 @@
     "react-hot-loader": "3.0.0-beta.6",
     "rimraf": "^2.6.1",
     "script-ext-html-webpack-plugin": "^1.7.1",
-    "uglify-js": "git://github.com/mishoo/UglifyJS2#harmony",
     "uglifyjs-webpack-plugin": "^0.4.3",
     "webpack": "^2.5.0",
     "webpack-bundle-analyzer": "^2.6.0",
     "webpack-dev-server": "^2.4.5",
-    "webpack-merge": "^4.1.0"
+    "webpack-node-externals": "^1.6.0"
   }
 }

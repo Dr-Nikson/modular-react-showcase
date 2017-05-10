@@ -1,22 +1,22 @@
 
 module.exports = function(config) {
-  const { isProd, host, port } = config
+  const { isProd, nodeBuild, host, port } = config
   const entryPoint = [
-    'babel-polyfill',
+    !nodeBuild && 'babel-polyfill',
 
     // activate HMR for React
-    !isProd && 'react-hot-loader/patch',
+    !isProd && !nodeBuild && 'react-hot-loader/patch',
 
     // bundle the client for webpack-dev-server
     // and connect to the provided endpoint
-    !isProd && `webpack-dev-server/client?http://${host}:${port}`,
+    !isProd && !nodeBuild && `webpack-dev-server/client?http://${host}:${port}`,
 
     // bundle the client for hot reloading
     // only- means to only hot reload for successful updates
-    !isProd && 'webpack/hot/only-dev-server',
+    !isProd && !nodeBuild && 'webpack/hot/only-dev-server',
 
     // the entry point of our app
-    './index.js',
+    `./${nodeBuild ? 'server' : 'client'}/index.js`,
   ]
 
   return entryPoint.filter(p => !!p)
