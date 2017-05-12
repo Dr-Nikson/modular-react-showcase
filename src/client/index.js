@@ -1,5 +1,5 @@
 import React from 'react'
-import bar from 'some/coolStuff'
+import bar from 'client/some/coolStuff'
 
 const text = 'Hello, world!'
 

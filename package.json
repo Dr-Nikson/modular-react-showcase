@@ -6,9 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf build/public && cross-env NODE_ENV=production webpack --config ./webpack.config.js --progress --env.prod=true",
-    "build-server": "rimraf build/private && cross-env NODE_ENV=development webpack --config ./webpack.config.js --progress --watch --colors --display-error-details --env.node=true",
+    "build-server": "rimraf build/private && cross-env NODE_ENV=development webpack --config ./webpack.config.js --progress --colors --display-error-details --env.node=true",
     "start-old": "cross-env NODE_ENV=development webpack-dev-server --config ./webpack.config.js",
-    "start": "cross-env NODE_ENV=development yarn run build-server"
+    "start": "cross-env NODE_ENV=development NODE_PATH=\"src\" yarn run build-server && node ./build/private/index.js"
   },
   "repository": {
     "type": "git",
@@ -26,7 +26,8 @@
   "dependencies": {
     "express": "^4.15.2",
     "react": "^15.5.4",
-    "react-dom": "^15.5.4"
+    "react-dom": "^15.5.4",
+    "source-map-support": "^0.4.15"
   },
   "devDependencies": {
     "babel-core": "^6.24.1",
@@ -46,7 +47,9 @@
     "uglifyjs-webpack-plugin": "^0.4.3",
     "webpack": "^2.5.0",
     "webpack-bundle-analyzer": "^2.6.0",
+    "webpack-dev-middleware": "^1.10.2",
     "webpack-dev-server": "^2.4.5",
+    "webpack-hot-middleware": "^2.18.0",
     "webpack-node-externals": "^1.6.0"
   }
 }

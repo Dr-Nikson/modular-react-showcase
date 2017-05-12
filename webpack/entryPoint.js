@@ -1,6 +1,7 @@
+const path = require('path')
 
 module.exports = function(config) {
-  const { isProd, nodeBuild, host, port } = config
+  const { isProd, nodeBuild, sourcePath, host, port } = config
   const entryPoint = [
     !nodeBuild && 'babel-polyfill',
 
@@ -9,14 +10,14 @@ module.exports = function(config) {
 
     // bundle the client for webpack-dev-server
     // and connect to the provided endpoint
-    !isProd && !nodeBuild && `webpack-dev-server/client?http://${host}:${port}`,
+    // !isProd && !nodeBuild && `webpack-dev-server/client?http://${host}:${port}`,
 
     // bundle the client for hot reloading
     // only- means to only hot reload for successful updates
-    !isProd && !nodeBuild && 'webpack/hot/only-dev-server',
+    // !isProd && !nodeBuild && 'webpack/hot/only-dev-server',
 
     // the entry point of our app
-    `./${nodeBuild ? 'server' : 'client'}/index.js`,
+    path.join(sourcePath, `/${nodeBuild ? 'server' : 'client'}/index.js`),
   ]
 
   return entryPoint.filter(p => !!p)

@@ -8,12 +8,14 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 // const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 
+console.log('filename', __filename)
 
 module.exports = function(config) {
-  const { isProd, nodeEnv, nodeBuild, serviceWorkerBuild } = config
+  const { isProd, nodeEnv, nodeBuild, serviceWorkerBuild, sourcePath } = config
   // const nodeEnv = env && env.prod ? 'production' : 'development';
   // const isProd = nodeEnv === 'production';
   // const serviceWorkerBuild = env && env.sw;
+  console.log('template path', sourcePath, path.join(sourcePath, '/client/template.ejs'))
 
   const plugins = [
     new webpack.optimize.CommonsChunkPlugin({
@@ -27,6 +29,11 @@ module.exports = function(config) {
     // and libraries
     new webpack.DefinePlugin({
       'process.env': { NODE_ENV: JSON.stringify(nodeEnv) },
+
+      __PRODUCTION__: isProd,
+      __DEVELOPMENT__: !isProd,
+      __CLIENT__: !nodeBuild,
+      __SERVER__: nodeBuild,
     }),
 
     // create css bundle
@@ -34,7 +41,7 @@ module.exports = function(config) {
 
     // create index.html
     !nodeBuild && new HtmlWebpackPlugin({
-      template: './client/template.ejs',
+      template: path.join(sourcePath, '/client/template.ejs'),
       inject: true,
       production: isProd,
       minify: isProd && {
@@ -62,7 +69,7 @@ module.exports = function(config) {
     !nodeBuild && new PreloadWebpackPlugin(),
 
     // minify remove some of the dead code
-    isProd && !nodeBuild && new UglifyJSPlugin({
+    isProd && new UglifyJSPlugin({
       compress: {
         warnings: false,
         screw_ie8: true,
@@ -101,7 +108,7 @@ module.exports = function(config) {
     }),
 
     new BundleAnalyzerPlugin({
-      analyzerMode: isProd || nodeBuild ? 'static' : 'server',
+      analyzerMode: 'static',
       openAnalyzer: isProd && !nodeBuild,
     }),
   ].filter(p => !!p)

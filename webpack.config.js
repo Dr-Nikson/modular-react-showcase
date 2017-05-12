@@ -1,4 +1,4 @@
-const webpack = require('webpack')
+// const webpack = require('webpack')
 const path = require('path')
 const fs = require('fs')
 const nodeExternals = require('webpack-node-externals')
@@ -8,7 +8,9 @@ const getEntryPoint = require('./webpack/entryPoint')
 const getCssLoader = require('./webpack/cssLoader')
 
 const setBabelTarget = require('./webpack/setBabelTarget')
-const babelRc = JSON.parse(fs.readFileSync(path.join(__dirname, './.babelrc'), 'utf8'))
+const excludeWebpackConfig = require('./webpack/excludeWebpackConfig')
+console.log('dirname', __dirname)
+const babelRc = JSON.parse(fs.readFileSync('.babelrc', 'utf8'))
 
 module.exports = function(env) {
   const config = {
@@ -20,16 +22,22 @@ module.exports = function(env) {
     // your app from wifi or a virtual machine
     host: process.env.HOST || 'localhost',
     port: process.env.PORT || 3000,
-    sourcePath: path.join(__dirname, `./src/`),
-    buildDirectory: path.join(__dirname, `./build/${!!(env && env.node) ? 'private' : 'public'}`),
+    projectPath: __dirname,
+    sourcePath: path.join(__dirname, `src/`),
+    buildDirectory: path.join(__dirname, `build/${!!(env && env.node) ? 'private' : 'public'}`),
   }
-  const { sourcePath, buildDirectory, isProd, nodeBuild, port, host } = config
+  const { sourcePath, buildDirectory, projectPath, isProd, nodeBuild, port, host } = config
+  console.log('BUILD DIRNAME', __dirname, __filename)
 
   return {
     devtool: nodeBuild ? 'source-map' : !isProd && 'cheap-module-source-map',
-    context: sourcePath,
+    context: nodeBuild ?  projectPath : sourcePath,
     target: nodeBuild ? 'node' : 'web',
-    externals: [nodeExternals()],
+    externals: [nodeBuild && excludeWebpackConfig('commonjs', nodeExternals())].filter(p => !!p),
+    node: {
+      __dirname: false,
+      __filename: false,
+    },
     entry: {
       main: getEntryPoint(config),
     },
@@ -85,7 +93,7 @@ module.exports = function(env) {
     stats: stats,
 
     devServer: {
-      contentBase: './src/client/',
+      contentBase: sourcePath,
       publicPath: '/',
       historyApiFallback: true,
       port: port,
