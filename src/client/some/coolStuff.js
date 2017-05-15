@@ -1,6 +1,5 @@
 import { bar } from 'client/test'
 
-export default function () {
+export default function() {
   return bar()
 }
-
