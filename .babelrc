@@ -15,12 +15,20 @@
         "loose": true
       }
     ],
-    "react"
+    "react",
+    "flow"
   ],
   "env": {
     "development": {
       "plugins": [
-        "react-hot-loader/babel"
+        "tcomb",
+        "react-hot-loader/babel",
+        "babel-plugin-tcomb"
+      ]
+    },
+    "production": {
+      "plugins": [
+        "transform-flow-strip-types"
       ]
     }
   }

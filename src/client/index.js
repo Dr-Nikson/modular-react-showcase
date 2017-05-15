@@ -1,3 +1,4 @@
+// @flow
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { AppContainer } from 'react-hot-loader'
@@ -19,20 +20,24 @@ renderApp(App)
 // Hot Module Replacement API
 if (module.hot) {
   console.info('MOD HOT')
+  // $FlowFixMe
   module.hot.accept('client/App', () => renderApp(App))
 }
 
 const text = 'Hello, world!'
 
-export default function* myCode() {
+function* myCode() {
   console.log('text')
   yield bar()
 
   return <h1>Hello, world!</h1>
 }
 
-console.log('App is ok!')
-console.error('App is ok!')
+function testFlow(r: number) {
+  return Math.max(r, 112)
+}
+
+console.log('App is ok! gag gagagagaag', testFlow(123))
 
 myCode()
 

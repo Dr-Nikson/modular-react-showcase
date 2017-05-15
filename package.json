@@ -5,13 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "pretify": "prettier --no-semi --single-quote --trailing-comma es5 --write \"src/**/*.js\"",
+    "pretify": "prettier --no-semi --single-quote --trailing-comma es5 --parser flow --write \"src/**/*.js\"",
+    "flow-init": "flow init",
+    "flow-install": "flow-typed install",
     "clean": "rimraf build/public && rimraf build/private",
     "build-dev": "rimraf build/private && webpack --config ./webpack.config.js --progress --colors --display-error-details --env.node=true",
     "build-client": "webpack --config ./webpack.config.js --progress --env.prod=true",
     "build-server": "webpack --config ./webpack.config.js --progress --colors --display-error-details --env.node=true --env.prod=true",
-    "build": "cross-env NODE_ENV=production yarn run clean && yarn run build-server && yarn run build-client",
-    "start": "yarn run clean && cross-env NODE_ENV=development NODE_PATH=\"src\" yarn run build-dev && node ./build/private/index.js"
+    "build": "cross-env NODE_ENV=production BABEL_ENV=production \"yarn run clean && yarn run build-server && yarn run build-client\"",
+    "start": "yarn run clean && cross-env NODE_ENV=development NODE_PATH=\"src\" \"yarn run build-dev && node ./build/private/index.js\""
   },
   "lint-staged": {
     "*.js": [
@@ -39,16 +41,21 @@
     "source-map-support": "^0.4.15"
   },
   "devDependencies": {
+    "babel-cli": "^6.24.1",
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
+    "babel-plugin-tcomb": "^0.3.25",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-polyfill": "^6.23.0",
     "babel-preset-env": "^1.4.0",
+    "babel-preset-flow": "^6.23.0",
     "babel-preset-react": "^6.24.1",
     "cross-env": "^4.0.0",
     "extract-text-webpack-plugin": "^2.1.0",
     "file-loader": "^0.11.1",
+    "flow-bin": "^0.46.0",
+    "flow-typed": "^2.1.2",
     "html-webpack-plugin": "^2.28.0",
     "husky": "^0.13.3",
     "lint-staged": "^3.4.1",
@@ -57,6 +64,7 @@
     "react-hot-loader": "3.0.0-beta.6",
     "rimraf": "^2.6.1",
     "script-ext-html-webpack-plugin": "^1.7.1",
+    "tcomb": "^3.2.20",
     "uglifyjs-webpack-plugin": "^0.4.3",
     "webpack": "^2.5.0",
     "webpack-bundle-analyzer": "^2.6.0",
