@@ -5,10 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rimraf build/public && cross-env NODE_ENV=production webpack --config ./webpack.config.js --progress --env.prod=true",
-    "build-server": "rimraf build/private && cross-env NODE_ENV=development webpack --config ./webpack.config.js --progress --colors --display-error-details --env.node=true",
-    "start-old": "cross-env NODE_ENV=development webpack-dev-server --config ./webpack.config.js",
-    "start": "cross-env NODE_ENV=development NODE_PATH=\"src\" yarn run build-server && node ./build/private/index.js"
+    "clean": "rimraf build/public && rimraf build/private",
+    "build-dev": "rimraf build/private && webpack --config ./webpack.config.js --progress --colors --display-error-details --env.node=true",
+    "build-client": "webpack --config ./webpack.config.js --progress --env.prod=true",
+    "build-server": "webpack --config ./webpack.config.js --progress --colors --display-error-details --env.node=true --env.prod=true",
+    "build": "cross-env NODE_ENV=production yarn run clean && yarn run build-server && yarn run build-client",
+    "start": "yarn run clean && cross-env NODE_ENV=development NODE_PATH=\"src\" yarn run build-dev && node ./build/private/index.js"
   },
   "repository": {
     "type": "git",
@@ -39,6 +41,7 @@
     "babel-preset-react": "^6.24.1",
     "cross-env": "^4.0.0",
     "extract-text-webpack-plugin": "^2.1.0",
+    "file-loader": "^0.11.1",
     "html-webpack-plugin": "^2.28.0",
     "preload-webpack-plugin": "^1.2.2",
     "react-hot-loader": "3.0.0-beta.6",

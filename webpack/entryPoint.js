@@ -8,6 +8,8 @@ module.exports = function(config) {
     // activate HMR for React
     !isProd && !nodeBuild && 'react-hot-loader/patch',
 
+    !isProd && !nodeBuild && 'webpack-hot-middleware/client',
+
     // bundle the client for webpack-dev-server
     // and connect to the provided endpoint
     // !isProd && !nodeBuild && `webpack-dev-server/client?http://${host}:${port}`,

@@ -10,7 +10,7 @@
 <div id="root">{{html}}</div>
 <script>
   (function() {
-  if('serviceWorker' in navigator) {
+  if('serviceWorker' in navigator && false) {
   navigator.serviceWorker.register('/sw.js');
 }
 })();

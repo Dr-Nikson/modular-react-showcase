@@ -9,7 +9,6 @@ const getCssLoader = require('./webpack/cssLoader')
 
 const setBabelTarget = require('./webpack/setBabelTarget')
 const excludeWebpackConfig = require('./webpack/excludeWebpackConfig')
-console.log('dirname', __dirname)
 const babelRc = JSON.parse(fs.readFileSync('.babelrc', 'utf8'))
 
 module.exports = function(env) {
@@ -27,7 +26,6 @@ module.exports = function(env) {
     buildDirectory: path.join(__dirname, `build/${!!(env && env.node) ? 'private' : 'public'}`),
   }
   const { sourcePath, buildDirectory, projectPath, isProd, nodeBuild, port, host } = config
-  console.log('BUILD DIRNAME', __dirname, __filename)
 
   return {
     devtool: nodeBuild ? 'source-map' : !isProd && 'cheap-module-source-map',
@@ -43,7 +41,7 @@ module.exports = function(env) {
     },
     output: {
       path: buildDirectory,
-      publicPath: '/',
+      publicPath: '/static/',
       filename: nodeBuild ? 'index.js' : '[name]-[hash:8].js',
       chunkFilename: 'chunk-[name]-[chunkhash:8].js',
     },
