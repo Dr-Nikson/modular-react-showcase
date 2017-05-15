@@ -5,12 +5,19 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "pretify": "prettier --no-semi --single-quote --trailing-comma es5 --write \"src/**/*.js\"",
     "clean": "rimraf build/public && rimraf build/private",
     "build-dev": "rimraf build/private && webpack --config ./webpack.config.js --progress --colors --display-error-details --env.node=true",
     "build-client": "webpack --config ./webpack.config.js --progress --env.prod=true",
     "build-server": "webpack --config ./webpack.config.js --progress --colors --display-error-details --env.node=true --env.prod=true",
     "build": "cross-env NODE_ENV=production yarn run clean && yarn run build-server && yarn run build-client",
     "start": "yarn run clean && cross-env NODE_ENV=development NODE_PATH=\"src\" yarn run build-dev && node ./build/private/index.js"
+  },
+  "lint-staged": {
+    "*.js": [
+      "yarn run pretify",
+      "git add"
+    ]
   },
   "repository": {
     "type": "git",
@@ -43,7 +50,10 @@
     "extract-text-webpack-plugin": "^2.1.0",
     "file-loader": "^0.11.1",
     "html-webpack-plugin": "^2.28.0",
+    "husky": "^0.13.3",
+    "lint-staged": "^3.4.1",
     "preload-webpack-plugin": "^1.2.2",
+    "prettier": "^1.3.1",
     "react-hot-loader": "3.0.0-beta.6",
     "rimraf": "^2.6.1",
     "script-ext-html-webpack-plugin": "^1.7.1",
