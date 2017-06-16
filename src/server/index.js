@@ -8,12 +8,13 @@ import express from 'express'
 import webpackDevMiddleware from 'webpack-dev-middleware'
 import webpackHotMiddleware from 'webpack-hot-middleware'
 
-import type { Express } from 'flow-typed'
-// import { foo } from 'client/test'
-// import defaultTemplate from 'string-loader!client/template.ejs'
+import type { $Application } from 'express'
+import { rendererFactory } from './serverSideRender'
+import Template from './Template'
 
-const app: Express = express()
-let template: string = ''
+
+const app: $Application = express()
+const template: Template = new Template()
 
 //noinspection JSUnresolvedVariable
 // $FlowFixMe
@@ -27,7 +28,7 @@ if (__DEVELOPMENT__) {
       'html-webpack-plugin-after-emit',
       (htmlPluginData, callback) => {
         console.log('[SERVER] Template updated')
-        template = htmlPluginData.html.source()
+        template.templateString = htmlPluginData.html.source()
         callback()
       }
     )
@@ -45,17 +46,14 @@ if (__DEVELOPMENT__) {
 //noinspection JSUnresolvedVariable
 // $FlowFixMe
 if (__PRODUCTION__) {
-  template = fs.readFileSync(
+  template.templateString = fs.readFileSync(
     path.join(__dirname, './../public/index.html'),
     'utf8'
   )
 }
 
 app.use('/static/', express.static(path.join(__dirname, './../public')))
-
-app.get('/*', (req, res) => {
-  res.set('Content-Type', 'text/html').send(template)
-})
+app.get('/*', rendererFactory(template))
 
 console.log('App is ok!!')
 

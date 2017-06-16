@@ -10,6 +10,7 @@ class App extends PureComponent {
         IT IS STRANGE... where is all nice br's <br />
         god yeah!!!!!
         <br />
+        So, let's dance!
       </div>
     )
   }
