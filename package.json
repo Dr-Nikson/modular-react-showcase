@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "precommit": "lint-staged",
-    "pretify": "prettier --no-semi --single-quote --trailing-comma es5 --parser flow --write",
+    "pretify": "prettier --no-semi --single-quote --trailing-comma es5 --parser flow --write \"src/**/*.js\"",
     "flow-init": "flow init",
     "flow-install": "flow-typed install",
     "clean": "rimraf build/public && rimraf build/private",
@@ -18,7 +18,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "yarn run pretify",
+      "prettier --no-semi --single-quote --trailing-comma es5 --parser flow --write",
       "git add"
     ]
   },
