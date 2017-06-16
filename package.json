@@ -17,7 +17,7 @@
     "start": "yarn run clean && cross-env NODE_ENV=development NODE_PATH=\"src\" \"yarn run build-dev && node ./build/private/index.js\""
   },
   "lint-staged": {
-    "*.js": [
+    "src/**/*.js": [
       "prettier --no-semi --single-quote --trailing-comma es5 --parser flow --write",
       "git add"
     ]
