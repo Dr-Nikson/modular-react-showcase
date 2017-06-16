@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "pretify": "prettier   --no-semi --single-quote --trailing-comma es5 --parser flow --write \"src/**/*.js\"",
+    "precommit": "lint-staged",
+    "pretify": "prettier --no-semi --single-quote --trailing-comma es5 --parser flow --write",
     "flow-init": "flow init",
     "flow-install": "flow-typed install",
     "clean": "rimraf build/public && rimraf build/private",
