@@ -12,7 +12,6 @@ import type { $Application } from 'express'
 import { rendererFactory } from './serverSideRender'
 import Template from './Template'
 
-
 const app: $Application = express()
 const template: Template = new Template()
 
