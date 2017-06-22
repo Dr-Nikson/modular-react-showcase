@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
 import { AppContainer } from 'react-hot-loader'
 import bar from 'client/some/coolStuff'
 
@@ -9,7 +10,9 @@ import App from 'client/App'
 const renderApp = Component => {
   ReactDOM.render(
     <AppContainer>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </AppContainer>,
     document.getElementById('root')
   )
