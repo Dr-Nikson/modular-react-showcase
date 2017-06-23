@@ -8,9 +8,10 @@ import express from 'express'
 import webpackDevMiddleware from 'webpack-dev-middleware'
 import webpackHotMiddleware from 'webpack-hot-middleware'
 
-import type { $Application } from 'express'
 import { rendererFactory } from './serverSideRender'
 import Template from './Template'
+
+import type { $Application } from 'express'
 
 const app: $Application = express()
 const template: Template = new Template()

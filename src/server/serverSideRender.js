@@ -11,16 +11,12 @@ import Template from './Template'
 
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
+import type { ServerRenderContext } from 'common/types/ServerRenderContext'
 
 type RenderResult = {
   status: number,
   body: string,
   url?: string,
-}
-
-type ServerRenderContext = {
-  url?: string,
-  status?: number,
 }
 
 const sendSuccess = (res: $Response, status: number, body: string): $Response =>

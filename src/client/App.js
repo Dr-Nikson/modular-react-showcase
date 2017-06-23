@@ -1,8 +1,9 @@
 // @flow
 import React, { PropTypes, PureComponent } from 'react'
-import { Route } from 'react-router-dom'
+import { Route, Switch } from 'react-router-dom'
 
 import HomePage from './Home'
+import NotFound from 'common/components/NotFound'
 
 class App extends PureComponent {
   static props: Object
@@ -11,14 +12,10 @@ class App extends PureComponent {
   render() {
     return (
       <div>
-        App is good
-        will it work, or i ... should WIIIN
-        but..not now, bro
-        IT IS STRANGE... where is all nice br's <br />
-        god yeah!!!!!
-        <br />
-        So, let's dance!
-        <Route exact path="/" component={HomePage} />
+        <Switch>
+          <Route exact path="/" component={HomePage} />
+          <Route component={NotFound} />
+        </Switch>
       </div>
     )
   }

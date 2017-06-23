@@ -1,3 +1,5 @@
+// @flow
+
 import { Either } from 'ramda-fantasy'
 
 function Try(fn) {
