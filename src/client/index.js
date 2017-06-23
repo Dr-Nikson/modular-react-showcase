@@ -11,7 +11,7 @@ const renderApp = Component => {
   ReactDOM.render(
     <AppContainer>
       <BrowserRouter>
-        <App />
+        <Component />
       </BrowserRouter>
     </AppContainer>,
     document.getElementById('root')
