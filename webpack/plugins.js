@@ -18,10 +18,14 @@ module.exports = function(config) {
   console.log('template path', sourcePath, path.join(sourcePath, '/client/template.ejs'))
 
   const plugins = [
-    new webpack.optimize.CommonsChunkPlugin({
+    !nodeBuild && new webpack.optimize.CommonsChunkPlugin({
       async: true,
       children: true,
       minChunks: 2,
+    }),
+
+    nodeBuild && new webpack.optimize.LimitChunkCountPlugin({
+      maxChunks: 1, // Must be greater than or equal to one
     }),
 
     // setting production environment will strip out
