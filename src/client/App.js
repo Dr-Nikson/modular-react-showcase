@@ -3,7 +3,8 @@ import React, { PropTypes, PureComponent } from 'react'
 import { Route, Switch } from 'react-router-dom'
 
 import HomePage from './Home'
-import NotFound from 'common/components/NotFound'
+import NotFound from 'common/routing/components/NotFound'
+import { ItemBundle } from 'common/bundles/item'
 
 class App extends PureComponent {
   static props: Object
@@ -14,6 +15,7 @@ class App extends PureComponent {
       <div>
         <Switch>
           <Route exact path="/" component={HomePage} />
+          <Route exact path="/item" component={ItemBundle} />
           <Route component={NotFound} />
         </Switch>
       </div>

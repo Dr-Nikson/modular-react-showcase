@@ -3,7 +3,7 @@ import React from 'react'
 import { Route } from 'react-router-dom'
 
 import type { Element } from 'react'
-import type { ServerRenderContext } from 'common/types/ServerRenderContext'
+import type { ServerRenderContext } from '../types'
 
 type StatusProps = {
   code: number,
@@ -12,7 +12,7 @@ type StatusProps = {
 
 export const Status = ({ code, children }: StatusProps) => (
   <Route
-    render={(routerContext): Element<*> => {
+    render={(routerContext: any): Element<*> => {
       if (routerContext.staticContext)
         (routerContext.staticContext: ServerRenderContext).status = code
       return children
