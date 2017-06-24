@@ -8,7 +8,7 @@ const NotFound = () => (
     <div>
       <h1>404</h1>
       <h2>
-        This is not page that you're looking for!
+        This is not the page that you're looking for!
       </h2>
     </div>
   </Status>

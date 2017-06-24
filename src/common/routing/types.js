@@ -5,6 +5,7 @@ import type { ReactClass } from 'react'
 export type BundleContext = {
   // name: string,
   component: ReactClass<any>,
+  bundleName: string,
   loadBundle: () => Promise<any>,
 }
 

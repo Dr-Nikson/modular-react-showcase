@@ -37,6 +37,7 @@
   "homepage": "https://bitbucket.org/bits-plz/au-ui#readme",
   "dependencies": {
     "express": "^4.15.2",
+    "history": "^4.6.3",
     "ramda": "^0.24.1",
     "ramda-fantasy": "^0.8.0",
     "react": "^15.5.4",
@@ -76,6 +77,7 @@
     "webpack-dev-middleware": "^1.10.2",
     "webpack-dev-server": "^2.4.5",
     "webpack-hot-middleware": "^2.18.0",
+    "webpack-module-hot-accept": "^1.0.5",
     "webpack-node-externals": "^1.6.0"
   }
 }

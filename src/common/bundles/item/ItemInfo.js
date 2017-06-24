@@ -3,7 +3,11 @@ import React from 'react'
 
 const ItemInfo = () => (
   <div className="ItemInfo">
-    THI IS ITEM
+    Item page
+    do it!
+    ples!!!<br /> SOSOasdasdsdfsdf
+    <br />
+    <b>does everything works correctly?</b>
   </div>
 )
 

@@ -19,6 +19,13 @@ module.exports = function(config) {
 
   const plugins = [
     !nodeBuild && new webpack.optimize.CommonsChunkPlugin({
+      async: false,
+      name: 'manifest',
+      filename: 'manifest.js',
+      minChunks: Infinity,
+    }),
+
+    !nodeBuild && new webpack.optimize.CommonsChunkPlugin({
       async: true,
       children: true,
       minChunks: 2,
@@ -65,6 +72,7 @@ module.exports = function(config) {
     // make sure script tags are async to avoid blocking html render
     !nodeBuild && new ScriptExtHtmlWebpackPlugin({
       defaultAttribute: 'async',
+      sync: 'manifest.js',
       preload: /\.js$/,
       // preload: /^chunk-/,
     }),

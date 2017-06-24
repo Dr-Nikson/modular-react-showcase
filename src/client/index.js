@@ -1,47 +1,25 @@
 // @flow
-import React from 'react'
-import ReactDOM from 'react-dom'
-import { BrowserRouter } from 'react-router-dom'
-import { AppContainer } from 'react-hot-loader'
-import bar from 'client/some/coolStuff'
+import { renderApp } from './renderApp'
+import bootstrap from './bootstrap'
 
 import App from 'client/App'
 
-const renderApp = Component => {
-  ReactDOM.render(
-    <AppContainer>
-      <BrowserRouter>
-        <Component />
-      </BrowserRouter>
-    </AppContainer>,
-    document.getElementById('root')
-  )
-}
+bootstrap(App)
 
-renderApp(App)
-
-// Hot Module Replacement API
 if (module.hot) {
-  console.info('MOD HOT')
+  console.log('MOD HOT')
+
+  let prevStatus = ''
   // $FlowFixMe
-  module.hot.accept('client/App', () => renderApp(App))
+  module.hot.addStatusHandler(status => {
+    console.log('[HMR] status', status)
+
+    if (status === 'idle' && status !== prevStatus) {
+      renderApp(App)
+    }
+    prevStatus = status
+  })
 }
 
-const text = 'Hello, world!'
-
-function* myCode() {
-  console.log('text')
-  yield bar()
-
-  return <h1>Hello, world!</h1>
-}
-
-function testFlow(r: number) {
-  return Math.max(r, 112)
-}
-
-console.log('App is ok! gag gagagagaag', testFlow(123))
-
-myCode()
-
+console.log('App is ok!', 'AHAHAHHAHA')
 console.log('I"M ALIVE!!!')

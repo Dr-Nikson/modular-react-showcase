@@ -22,8 +22,12 @@ class Bundle extends Component<void, BundleProps, BundleState> {
     this.load(this.props)
   }
 
+  shouldComponentUpdate(nextProps: BundleProps, nextState: BundleState) {
+    return true
+  }
+
   componentWillReceiveProps(nextProps: BundleProps) {
-    if (nextProps.load !== this.props.load) {
+    if (nextProps.load !== this.props.load || true) {
       this.load(nextProps)
     }
   }

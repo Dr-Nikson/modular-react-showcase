@@ -9,6 +9,8 @@ import Try from 'common/utils/Try'
 import App from 'client/App'
 import Template from './Template'
 import routes from 'common/routing/routes'
+import renderLoadedChunks from 'server/renderLoadedChunks'
+import loadAsyncBundles from 'common/utils/loadAsyncBundles'
 
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
@@ -26,31 +28,22 @@ const sendSuccess = (res: $Response, status: number, body: string): $Response =>
 const sendRedirect = (res: $Response, status: number, url: string): $Response =>
   res.redirect(status, url)
 
-const loadAsyncComponents = (routes, url): Promise<BundleContext[]> => {
-  const matched = Promise.all(
-    routes.filter(route => matchPath(url, route)).map(route =>
-      route.loadBundle().then(component => ({
-        ...route,
-        component: component.default ? component.default : component,
-      }))
-    )
-  )
-
-  return matched
-}
-
 export const rendererFactory = (template: Template) => {
-  const renderTemplate = (html: string) =>
-    template.templateString.replace('{{html}}', html)
+  const renderTemplate = (html: string, chunkNames: string[]) =>
+    template.templateString
+      .replace('{{html}}', html)
+      .replace('{{chunks}}', renderLoadedChunks(chunkNames))
+      .replace('{{bundles}}', JSON.stringify(chunkNames))
   const createRenderResult = (
     context: ServerRenderContext,
     html: string
   ): RenderResult => {
-    const { url, status } = context
+    const { url, status, bundles = [] } = context
     const isRedirected = !!url
+    const chunkNames = bundles.map(b => b.bundleName)
 
     return {
-      body: renderTemplate(html),
+      body: renderTemplate(html, chunkNames),
       status: status || (isRedirected ? 301 : 200),
       url,
     }
@@ -74,7 +67,7 @@ export const rendererFactory = (template: Template) => {
       return createRenderResult(context, html)
     }
 
-    loadAsyncComponents(routes, req.url).then(bundles => {
+    loadAsyncBundles(routes(), req.url).then(bundles => {
       const renderResult: RenderResult = handleRenderErrors(
         Try(() => doServerRender((bundles: BundleContext[])))
       )

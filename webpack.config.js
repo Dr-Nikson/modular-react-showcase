@@ -43,7 +43,8 @@ module.exports = function(env) {
       path: buildDirectory,
       publicPath: '/static/',
       filename: nodeBuild ? 'index.js' : '[name]-[hash:8].js',
-      chunkFilename: 'chunk-[name]-[chunkhash:8].js',
+      // chunkFilename: 'chunk-[name]-[chunkhash:8].js',
+      chunkFilename: '[name].js',
     },
     module: {
       rules: [
@@ -65,13 +66,13 @@ module.exports = function(env) {
         {
           test: /\.(js|jsx)$/,
           exclude: /node_modules/,
-          use: {
+          use: [{
             loader: 'babel-loader',
             options: Object.assign(
               { babelrc: false },
               setBabelTarget(babelRc, nodeBuild ? 'node' : 'browsers')
             ),
-          },
+          }, 'webpack-module-hot-accept'],
         },
       ],
     },
