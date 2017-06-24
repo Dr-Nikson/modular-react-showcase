@@ -5,12 +5,17 @@ import { BrowserRouter } from 'react-router-dom'
 import { AppContainer } from 'react-hot-loader'
 
 import App from 'client/App'
+import BundleProvider from 'common/routing/components/BundleProvider'
+import getRoutes from 'common/routing/routes'
+import type { BundleContext } from 'common/routing/types'
 
-export const renderApp = (Component: any, bundles: string[] = []) => {
+export const renderApp = (bundles: BundleContext[], Component: any) => {
   ReactDOM.render(
     <AppContainer>
       <BrowserRouter>
-        <Component />
+        <BundleProvider bundles={bundles} routes={getRoutes()}>
+          <Component />
+        </BundleProvider>
       </BrowserRouter>
     </AppContainer>,
     document.getElementById('root')

@@ -6,12 +6,14 @@ import { Route } from 'react-router-dom'
 import type { Element } from 'react'
 import type { ServerRenderContext } from 'common/routing/types'
 import { Status } from 'common/routing/components/Status'
-
-import ItemInfo from './ItemInfo'
+import withBundle from 'common/routing/components/BundleRoute'
 
 export const bundleName: string = 'item-bundle'
-// export const loadBundle: Function = () => import(/* webpackChunkName: "item-bundle" */ 'common/bundles/item/ItemInfo')
-export const loadBundle: Function = () => Promise.resolve(ItemInfo)
+// prettier-ignore
+export const loadBundle: Function = () => new Promise(resolve => setTimeout(resolve, 1500))
+  .then(() => import(/* webpackChunkName: "item-bundle" */ 'common/bundles/item/ItemInfo'))
+
+// export const loadBundle: Function = () => Promise.resolve(ItemInfo)
 
 const load = (cb: Function) =>
   // new Promise(resolve => setTimeout(resolve, 1000)).then(loadBundle).then(cb)
@@ -52,4 +54,4 @@ const ServerItemBundle = (props: any) => (
 
 // $FlowFixMe
 // export const ItemBundle = __CLIENT__ ? ClientItemBundle : ServerItemBundle
-export const ItemBundle = ClientItemBundle
+export const ItemBundle = withBundle(bundleName)

@@ -2,15 +2,13 @@
 import React from 'react'
 
 const renderLoadedChunks = (names: string[]): string => {
-  return (
-    names
-      .map(
-        name =>
-          `<script type="text/javascript" src="/static/${name}.js" async></script>`
-      )
-      // .concat(['</body>'])
-      .join('')
-  )
+  return names
+    .map(
+      name =>
+        `<script type="text/javascript" src="/static/${name}.js" async></script>`
+    )
+    .concat(['</body>'])
+    .join('')
 }
 
 export default renderLoadedChunks

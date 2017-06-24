@@ -16,6 +16,7 @@ import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
 import type { ServerRenderContext } from '../common/routing/types'
 import type { BundleContext } from 'common/routing/types'
+import BundleProvider from 'common/routing/components/BundleProvider'
 
 type RenderResult = {
   status: number,
@@ -32,7 +33,7 @@ export const rendererFactory = (template: Template) => {
   const renderTemplate = (html: string, chunkNames: string[]) =>
     template.templateString
       .replace('{{html}}', html)
-      .replace('{{chunks}}', renderLoadedChunks(chunkNames))
+      .replace('</body>', renderLoadedChunks(chunkNames))
       .replace('{{bundles}}', JSON.stringify(chunkNames))
   const createRenderResult = (
     context: ServerRenderContext,
@@ -59,7 +60,9 @@ export const rendererFactory = (template: Template) => {
       const context: ServerRenderContext = { bundles }
       const serverSideApp = (
         <StaticRouter context={context} location={req.url}>
-          <App />
+          <BundleProvider bundles={bundles} routes={routes()}>
+            <App />
+          </BundleProvider>
         </StaticRouter>
       )
       const html = ReactDOMServer.renderToString(serverSideApp)

@@ -1,25 +1,26 @@
 // @flow
-import { renderApp } from './renderApp'
 import bootstrap from './bootstrap'
-
 import App from 'client/App'
 
-bootstrap(App)
+console.info('Client bundle is started')
 
-if (module.hot) {
-  console.log('MOD HOT')
+bootstrap().then(renderApp => {
+  console.info('Application bootstrapped')
+  renderApp(App)
+  console.info('Application rendered')
 
-  let prevStatus = ''
-  // $FlowFixMe
-  module.hot.addStatusHandler(status => {
-    console.log('[HMR] status', status)
+  if (module.hot) {
+    console.log('MOD HOT')
 
-    if (status === 'idle' && status !== prevStatus) {
-      renderApp(App)
-    }
-    prevStatus = status
-  })
-}
+    let prevStatus = ''
+    // $FlowFixMe
+    module.hot.addStatusHandler(status => {
+      console.log('[HMR] status', status)
 
-console.log('App is ok!', 'AHAHAHHAHA')
-console.log('I"M ALIVE!!!')
+      if (status === 'idle' && status !== prevStatus) {
+        renderApp(App)
+      }
+      prevStatus = status
+    })
+  }
+})

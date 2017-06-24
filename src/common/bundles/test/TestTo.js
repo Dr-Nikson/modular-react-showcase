@@ -8,6 +8,7 @@ export const TestTo = (props: any) => (
       some space for HMR
       <br />
       CANT BELIVE!!! yep, it's done! now
+      выфаывв
       <br />
       <br />
       {props.children}
