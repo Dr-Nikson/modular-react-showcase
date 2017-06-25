@@ -1,44 +1,26 @@
 // @flow
-import React from 'react'
-import ReactDOM from 'react-dom'
-import { AppContainer } from 'react-hot-loader'
-import bar from 'client/some/coolStuff'
-
+import bootstrap from './bootstrap'
 import App from 'client/App'
 
-const renderApp = Component => {
-  ReactDOM.render(
-    <AppContainer>
-      <App />
-    </AppContainer>,
-    document.getElementById('root')
-  )
-}
+console.info('Client bundle is started')
 
-renderApp(App)
+bootstrap().then(renderApp => {
+  console.info('Application bootstrapped')
+  renderApp(App)
+  console.info('Application rendered')
 
-// Hot Module Replacement API
-if (module.hot) {
-  console.info('MOD HOT')
-  // $FlowFixMe
-  module.hot.accept('client/App', () => renderApp(App))
-}
+  if (module.hot) {
+    console.log('MOD HOT')
 
-const text = 'Hello, world!'
+    let prevStatus = ''
+    // $FlowFixMe
+    module.hot.addStatusHandler(status => {
+      console.log('[HMR] status', status)
 
-function* myCode() {
-  console.log('text')
-  yield bar()
-
-  return <h1>Hello, world!</h1>
-}
-
-function testFlow(r: number) {
-  return Math.max(r, 112)
-}
-
-console.log('App is ok! gag gagagagaag', testFlow(123))
-
-myCode()
-
-console.log('I"M ALIVE!!!')
+      if (status === 'idle' && status !== prevStatus) {
+        renderApp(App)
+      }
+      prevStatus = status
+    })
+  }
+})

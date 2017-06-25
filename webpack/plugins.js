@@ -18,10 +18,21 @@ module.exports = function(config) {
   console.log('template path', sourcePath, path.join(sourcePath, '/client/template.ejs'))
 
   const plugins = [
-    new webpack.optimize.CommonsChunkPlugin({
+    !nodeBuild && new webpack.optimize.CommonsChunkPlugin({
+      async: false,
+      name: 'manifest',
+      filename: 'manifest.js',
+      minChunks: Infinity,
+    }),
+
+    !nodeBuild && new webpack.optimize.CommonsChunkPlugin({
       async: true,
       children: true,
       minChunks: 2,
+    }),
+
+    nodeBuild && new webpack.optimize.LimitChunkCountPlugin({
+      maxChunks: 1, // Must be greater than or equal to one
     }),
 
     // setting production environment will strip out
@@ -61,6 +72,7 @@ module.exports = function(config) {
     // make sure script tags are async to avoid blocking html render
     !nodeBuild && new ScriptExtHtmlWebpackPlugin({
       defaultAttribute: 'async',
+      sync: 'manifest.js',
       preload: /\.js$/,
       // preload: /^chunk-/,
     }),
