@@ -1,24 +1,20 @@
 // @flow
 import React, { PropTypes, PureComponent } from 'react'
-import { Route } from 'react-router-dom'
 import { Either } from 'ramda-fantasy'
+
 import Try from 'common/utils/Try'
+import BundleError from 'common/routing/components/BundleError'
 
-import type { Element } from 'react'
-import Status from 'common/routing/components/Status'
-import { identity } from 'ramda'
-
-type BundleRouteProps = {
-  bundleName: string,
-}
+// $FlowFixMe
+import type { ReactClass, Element } from 'react'
 
 type BundleState = {
-  component: any | null,
+  component: ReactClass<any> | null,
 }
 
 type BundleRouteContext = {
-  loadBundle: Function, //(string) => Promise<any>,
-  getBundleComponent: Function, //(string) => any,
+  loadBundle: (name: string) => Promise<ReactClass<any>>,
+  getBundleComponent: (name: string) => ReactClass<any>,
 }
 
 const renderBundleComponent = (BundleComponent, props) => (
@@ -26,17 +22,7 @@ const renderBundleComponent = (BundleComponent, props) => (
 )
 const renderBundleLoading = () => <div>loading bundle...</div>
 
-type BundleErrorProps = {
-  error: any,
-}
-
-const BundleError = (props: BundleErrorProps) => (
-  <Status code={500}>
-    <div>Bundle loading error: {props.error.toSting()}</div>
-  </Status>
-)
-
-const withBundle = (bundleName: string) => {
+const asyncBundle = (bundleName: string) => {
   class Bundle extends PureComponent<void, any, BundleState> {
     state = {
       component: null,
@@ -49,7 +35,7 @@ const withBundle = (bundleName: string) => {
       }
     }
 
-    getComponent() {
+    getComponent(): ReactClass<any> {
       const { getBundleComponent } = this.context
       return Either.either(
         error => BundleError,
@@ -86,4 +72,4 @@ const withBundle = (bundleName: string) => {
   return Bundle
 }
 
-export default withBundle
+export default asyncBundle

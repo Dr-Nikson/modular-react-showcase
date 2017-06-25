@@ -2,28 +2,29 @@
 import { matchPath } from 'react-router-dom'
 
 import type { BundleContext } from 'common/routing/types'
-import type { RouteConfig, AsyncBundleConfig } from 'common/routing/routes'
+import type { RouteConfig, AsyncRouteConfig } from 'common/routing/types'
 
-export const loadAsyncBundle = (route: AsyncBundleConfig) => {
-  return route.loadBundle().then(component => ({
+// TODO: unit tests for this
+export const loadAsyncBundle = (
+  route: AsyncRouteConfig
+): Promise<BundleContext> => {
+  return route.bundle.load().then(component => ({
     ...route,
     component: component.default ? component.default : component,
   }))
 }
 
-const loadAsyncBundles = (
+export const loadAsyncBundles = (
   routes: RouteConfig[],
   url: string
 ): Promise<BundleContext[]> => {
   const matched = Promise.all(
     routes
-      .filter((route: any) => route.loadBundle && route.bundleName)
+      .filter((route: any) => !!route.bundle)
       .filter((route: any) => matchPath(url, route))
-      .map((route: any) => (route: AsyncBundleConfig))
+      .map((route: any) => (route: AsyncRouteConfig))
       .map(loadAsyncBundle)
   )
 
   return matched
 }
-
-export default loadAsyncBundles

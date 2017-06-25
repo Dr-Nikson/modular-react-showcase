@@ -4,12 +4,17 @@ import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
 import { AppContainer } from 'react-hot-loader'
 
-import App from 'client/App'
 import BundleProvider from 'common/routing/components/BundleProvider'
-import getRoutes from 'common/routing/routes'
+import getRoutes from 'common/routing/getRoutes'
+
+// $FlowFixMe
+import type { ReactClass } from 'react'
 import type { BundleContext } from 'common/routing/types'
 
-export const renderApp = (bundles: BundleContext[], Component: any) => {
+export const renderApp = (
+  bundles: BundleContext[],
+  Component: ReactClass<any>
+): void => {
   ReactDOM.render(
     <AppContainer>
       <BrowserRouter>
@@ -21,11 +26,3 @@ export const renderApp = (bundles: BundleContext[], Component: any) => {
     document.getElementById('root')
   )
 }
-
-// Hot Module Replacement API
-/*if (module.hot) {
-  console.info('MOD HOT')
-
-  // $FlowFixMe
-  module.hot.accept('client/App', () => renderApp(App))
-}*/

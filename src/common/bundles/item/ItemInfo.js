@@ -5,14 +5,18 @@ const ItemInfo = () => (
   <div className="ItemInfo">
     Item page
     do it!
-    ples!!!<br />
+    ples!!!
+    <br />
     FUCK YEAH
-    DJSADHJKAHFJK HJFKH AJKSDHFJKSDHFJKSDHGJKDSHj
     <br />
     IM SO HAPPPY SO SO SO SO SO <b>MUCH</b>
     <h3>GOD BLESS ME</h3>
     <h2>MAKE NIK GREAT AGAIN</h2>
     <h1>BABY, I AM THE BEST</h1>
+    Why it is so good?
+    <hr />
+    <i>YO YO YO</i>
+    <hr />
     <br />
     <b>does everything works correctly?</b>
   </div>

@@ -2,11 +2,14 @@
 // $FlowFixMe
 import type { ReactClass } from 'react'
 
+export type BundleConfig = {
+  name: string,
+  load: () => Promise<any>,
+}
+
 export type BundleContext = {
-  // name: string,
   component: ReactClass<any>,
-  bundleName: string,
-  loadBundle: () => Promise<any>,
+  bundle: BundleConfig,
 }
 
 export type ServerRenderContext = {
@@ -14,3 +17,15 @@ export type ServerRenderContext = {
   status?: number,
   bundles?: BundleContext[],
 }
+
+export type SyncRouteConfig = {
+  path: string,
+  component: ReactClass<any>,
+}
+
+export type AsyncRouteConfig = {
+  path: string,
+  bundle: BundleConfig,
+}
+
+export type RouteConfig = SyncRouteConfig | AsyncRouteConfig

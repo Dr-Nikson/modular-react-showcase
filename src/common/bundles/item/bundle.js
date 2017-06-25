@@ -1,57 +1,18 @@
 // @flow
 import * as React from 'react'
-import Bundle from 'common/routing/components/Bundle'
-import { Route } from 'react-router-dom'
-
 import type { Element } from 'react'
-import type { ServerRenderContext } from 'common/routing/types'
-import { Status } from 'common/routing/components/Status'
-import withBundle from 'common/routing/components/BundleRoute'
 
-export const bundleName: string = 'item-bundle'
+import asyncBundle from 'common/routing/asyncBundle'
+import type { BundleConfig } from 'common/routing/types'
+
+const name: string = 'item-bundle'
 // prettier-ignore
-export const loadBundle: Function = () => new Promise(resolve => setTimeout(resolve, 1500))
+const load: Function = () => new Promise(resolve => setTimeout(resolve, 1500))
   .then(() => import(/* webpackChunkName: "item-bundle" */ 'common/bundles/item/ItemInfo'))
 
-// export const loadBundle: Function = () => Promise.resolve(ItemInfo)
-
-const load = (cb: Function) =>
-  // new Promise(resolve => setTimeout(resolve, 1000)).then(loadBundle).then(cb)
-  loadBundle().then(cb)
-
-export const ClientItemBundle = (props: any) => {
-  console.log('ClientItemBundle', 'yep, plz')
-  return (
-    <div>
-      some goood things happens!
-    </div>
-  )
-  /*return (
-    <Bundle load={load}>
-      {ItemInfo => <ItemInfo {...props} />}
-    </Bundle>
-  )*/
+export const bundle: BundleConfig = {
+  name,
+  load,
 }
 
-const renderItemBundle = (ItemInfo, props) => <ItemInfo {...props} />
-
-const ServerItemBundle = (props: any) => (
-  <Route
-    render={(routerContext: any): Element<any> => {
-      const {
-        bundles = [],
-      } = (routerContext.staticContext: ServerRenderContext)
-      const itemBundle = bundles.find(
-        bundle => bundle.loadBundle === loadBundle
-      )
-
-      return !!itemBundle
-        ? renderItemBundle(itemBundle.component, props)
-        : <Status code={500}><div>Bundle loading error</div></Status>
-    }}
-  />
-)
-
-// $FlowFixMe
-// export const ItemBundle = __CLIENT__ ? ClientItemBundle : ServerItemBundle
-export const ItemBundle = withBundle(bundleName)
+export const ItemBundle = asyncBundle(name)

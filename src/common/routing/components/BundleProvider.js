@@ -1,13 +1,15 @@
 // @flow
 import React, { Component, PropTypes } from 'react'
-import type { RouteConfig } from 'common/routing/routes'
-import type { AsyncBundleConfig, SyncBundleConfig } from 'common/routing/routes'
-import { loadAsyncBundle } from 'common/utils/loadAsyncBundles'
-import type { BundleContext } from 'common/routing/types'
+import { loadAsyncBundle } from 'common/routing/bundleLoadingUtils'
+
+// $FlowFixMe
+import type { ReactClass } from 'react'
+import type { RouteConfig, BundleContext } from 'common/routing/types'
+import type { AsyncRouteConfig } from 'common/routing/types'
 
 type BundleLoadingError = {
   bundleName: string,
-  error: any,
+  details: any,
 }
 
 type BundleProviderProps = {
@@ -22,8 +24,8 @@ type BundleProviderState = {
 }
 
 type BundleProviderChildrenContext = {
-  loadBundle: Function, //string => Promise<any>,
-  getBundleComponent: Function, //string => any,
+  loadBundle: (name: string) => Promise<ReactClass<any>>,
+  getBundleComponent: (name: string) => ReactClass<any>,
 }
 
 class BundleProvider
@@ -42,45 +44,45 @@ class BundleProvider
     }
   }
 
-  _findRoute = (bundleName: string): ?RouteConfig => {
+  _findAsyncRoute = (name: string): ?AsyncRouteConfig => {
     const { routes } = this.props
-    const route = routes.find((r: any) => r.bundleName)
+    const route = routes
+      .filter((r: any) => !!r.bundle)
+      .map((r: any) => (r: AsyncRouteConfig))
+      .find(r => r.bundle.name === name)
 
     return route
   }
 
-  _findBundle = (bundleName: string): ?BundleContext => {
+  _findBundle = (name: string): ?BundleContext => {
     const { bundles } = this.state
-    const bundle = bundles.find(r => r.bundleName)
+    const bundle = bundles.find(r => r.bundle.name === name)
 
     return bundle
   }
 
-  _saveLoadedBundle = (bundle: any): Promise<BundleContext> => {
-    const finalBundle = (bundle: BundleContext)
+  _saveLoadedBundle = (bundle: BundleContext): Promise<BundleContext> => {
     let resolver = null
     const p = new Promise(resolve => (resolver = resolve))
 
     this.setState(
-      {
-        bundles: [...this.state.bundles, finalBundle],
-      },
-      () => resolver && resolver(finalBundle.component)
+      { bundles: [...this.state.bundles, bundle] },
+      () => resolver && resolver(bundle.component)
     )
 
     return p
   }
 
-  _saveLoadingError = (bundleName: string, error: any): Promise<any> => {
+  _saveLoadingError = (bundleName: string, details: any): Promise<any> => {
     this.setState({
-      errors: [...this.state.errors, { bundleName, error }],
+      errors: [...this.state.errors, { bundleName, details }],
     })
 
-    return Promise.reject(error)
+    return Promise.reject(details)
   }
 
   loadBundle = (bundleName: string): Promise<any> => {
-    const targetRoute: AsyncBundleConfig = (this._findRoute(bundleName): any)
+    const targetRoute: ?AsyncRouteConfig = this._findAsyncRoute(bundleName)
     return targetRoute
       ? loadAsyncBundle(targetRoute).then(this._saveLoadedBundle, e =>
           this._saveLoadingError(bundleName, e)
@@ -89,14 +91,13 @@ class BundleProvider
   }
 
   getBundleComponent = (bundleName: string): any => {
-    const targetRoute = this._findBundle(bundleName)
-    const component =
-      targetRoute && ((targetRoute: any): SyncBundleConfig).component
+    const targetBundle: ?BundleContext = this._findBundle(bundleName)
+    const component = targetBundle && targetBundle.component
     const error =
       !component && this.state.errors.find(er => er.bundleName === bundleName)
 
     if (error) {
-      throw new Error(error.error)
+      throw new Error(error.details)
     }
 
     return component

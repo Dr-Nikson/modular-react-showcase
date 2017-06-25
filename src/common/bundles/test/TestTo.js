@@ -7,11 +7,10 @@ export const TestTo = (props: any) => (
     <p>
       some space for HMR
       <br />
-      CANT BELIVE!!! yep, it's done! now
-      выфаывв
-      <br />
-      <br />
+      CANT BELIVE!!! yep, it's done! now children:
+      <hr />
       {props.children}
+      <hr />
     </p>
   </div>
 )
