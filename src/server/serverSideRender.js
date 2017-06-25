@@ -9,14 +9,13 @@ import Try from 'common/utils/Try'
 import App from 'client/App'
 import Template from './Template'
 import getRoutes from 'common/routing/getRoutes'
-import renderLoadedChunks from 'server/renderLoadedChunks'
 import { loadAsyncBundles } from 'common/routing/bundleLoadingUtils'
+import BundleProvider from 'common/routing/components/BundleProvider'
 
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
 import type { ServerRenderContext } from '../common/routing/types'
 import type { BundleContext } from 'common/routing/types'
-import BundleProvider from 'common/routing/components/BundleProvider'
 
 type RenderResult = {
   status: number,
@@ -30,11 +29,6 @@ const sendRedirect = (res: $Response, status: number, url: string): $Response =>
   res.redirect(status, url)
 
 export const rendererFactory = (template: Template) => {
-  const renderTemplate = (html: string, chunkNames: string[]) =>
-    template.templateString
-      .replace('{{html}}', html)
-      .replace('</body>', renderLoadedChunks(chunkNames))
-      .replace('{{bundles}}', JSON.stringify(chunkNames))
   const createRenderResult = (
     context: ServerRenderContext,
     html: string
@@ -44,7 +38,7 @@ export const rendererFactory = (template: Template) => {
     const chunkNames = bundles.map(b => b.bundle.name)
 
     return {
-      body: renderTemplate(html, chunkNames),
+      body: template.renderTemplate({ html, chunkNames }),
       status: status || (isRedirected ? 301 : 200),
       url,
     }
