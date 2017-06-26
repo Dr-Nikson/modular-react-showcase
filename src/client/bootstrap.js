@@ -8,26 +8,30 @@ import { curry } from 'ramda'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
-import type { CurriedFunction2 } from 'ramda'
+import type { CurriedFunction2, CurriedFunction3 } from 'ramda'
 import type { BundleContext } from 'common/routing/types'
+import createStore from 'common/redux/createStore'
 
 const history = createHistory()
 const location = history.location
 const url = location.pathname + location.search + location.hash
 
 type RenderAppFunction = (component: ReactClass<any>) => void
-type CurriedRenderApp = CurriedFunction2<BundleContext[], ReactClass<any>, void>
 
 const bootstrapApp = (): Promise<RenderAppFunction> => {
-  return loadAsyncBundles(
-    getRoutes(),
-    url
-  ).then((bundles: BundleContext[]): RenderAppFunction => {
-    const render: CurriedRenderApp = curry(renderApp)
-    console.info('Bundles are loaded!')
+  return loadAsyncBundles(getRoutes(), url)
+    .then((bundles: BundleContext[]): Function => {
+      const render: Function = curry(renderApp)
+      console.info('Bundles are loaded!')
 
-    return (render(bundles): any)
-  })
+      return (render(bundles): any)
+    })
+    .then((renderFn: Function): RenderAppFunction => {
+      const initialState = window.__INITIAL_STATE__
+      const store = createStore({ history, initialState })
+
+      return renderFn(store)
+    })
 }
 
 export default bootstrapApp
