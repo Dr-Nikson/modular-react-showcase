@@ -8,6 +8,7 @@ import express from 'express'
 import webpackDevMiddleware from 'webpack-dev-middleware'
 import webpackHotMiddleware from 'webpack-hot-middleware'
 
+import apiRoutes from 'api'
 import { rendererFactory } from './serverSideRender'
 import Template from './Template'
 
@@ -53,6 +54,7 @@ if (__PRODUCTION__) {
 }
 
 app.use('/static/', express.static(path.join(__dirname, './../public')))
+app.use('/api/', apiRoutes)
 app.get('/*', rendererFactory(template))
 
 console.log('App is ok!!')

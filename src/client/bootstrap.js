@@ -30,7 +30,7 @@ const bootstrapApp = (): Promise<RenderAppFunction> => {
       const initialState = window.__INITIAL_STATE__
       const store = createStore({ history, initialState })
 
-      return renderFn(store)
+      return renderFn(store, history)
     })
 }
 

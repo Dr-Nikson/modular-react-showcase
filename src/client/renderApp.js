@@ -2,6 +2,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
+import { ConnectedRouter } from 'react-router-redux'
 import { AppContainer } from 'react-hot-loader'
 import { Provider } from 'react-redux'
 
@@ -15,16 +16,17 @@ import type { BundleContext } from 'common/routing/types'
 export const renderApp = (
   bundles: BundleContext[],
   store: Object,
+  history: Object,
   Component: ReactClass<any>
 ): void => {
   ReactDOM.render(
     <AppContainer>
       <Provider store={store}>
-        <BrowserRouter>
+        <ConnectedRouter history={history}>
           <BundleProvider bundles={bundles} routes={getRoutes()}>
             <Component />
           </BundleProvider>
-        </BrowserRouter>
+        </ConnectedRouter>
       </Provider>
     </AppContainer>,
     document.getElementById('root')
