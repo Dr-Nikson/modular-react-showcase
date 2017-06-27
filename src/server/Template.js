@@ -3,6 +3,7 @@
 type TemplateData = {
   html: string,
   chunkNames: string[],
+  initialState: Object,
 }
 
 class Template {
@@ -19,9 +20,10 @@ class Template {
     return this
   }
 
-  renderTemplate({ html, chunkNames }: TemplateData): string {
+  renderTemplate({ html, initialState, chunkNames }: TemplateData): string {
     return this._templateString
       .replace('{{html}}', html)
+      .replace('{{initialState}}', JSON.stringify(initialState))
       .replace('</body>', this._renderChunks(chunkNames) + '</body>')
   }
 

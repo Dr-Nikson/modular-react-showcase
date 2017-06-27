@@ -19,15 +19,16 @@ module.exports = function(config) {
 
   const plugins = [
     !nodeBuild && new webpack.optimize.CommonsChunkPlugin({
-      async: false,
+      // async: true,
       name: 'manifest',
       filename: 'manifest.js',
       minChunks: Infinity,
     }),
 
     !nodeBuild && new webpack.optimize.CommonsChunkPlugin({
-      async: true,
+      async: 'usedTwiceAsync',
       children: true,
+      name: "main", // this is very important to keep name same as entry point
       minChunks: 2,
     }),
 

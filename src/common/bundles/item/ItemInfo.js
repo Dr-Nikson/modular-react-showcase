@@ -1,8 +1,9 @@
 // @flow
 import React from 'react'
+import UsedTwice from 'common/bundles/test/UsedTwice'
 
 const ItemInfo = () => (
-  <div className="ItemInfo">
+  <UsedTwice className="ItemInfo">
     Item page
     do it!
     ples!!!
@@ -19,7 +20,7 @@ const ItemInfo = () => (
     <hr />
     <br />
     <b>does everything works correctly?</b>
-  </div>
+  </UsedTwice>
 )
 
 export default ItemInfo
