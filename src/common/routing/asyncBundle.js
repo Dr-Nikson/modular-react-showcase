@@ -26,6 +26,7 @@ const renderBundleLoading = () => <div>loading bundle...</div>
 
 const asyncBundle = (bundleName: string) => {
   class Bundle extends PureComponent<void, any, BundleState> {
+    mounted: boolean = false
     state = {
       component: null,
     }
@@ -51,12 +52,18 @@ const asyncBundle = (bundleName: string) => {
       const { component } = this.state
       const { loadBundleComponent } = this.context
 
+      this.mounted = true
+
       if (!component) {
         loadBundleComponent(bundleName).then(
-          component => this.setState({ component }),
-          error => this.setState({ component: BundleError })
+          component => this.mounted && this.setState({ component }),
+          error => this.mounted && this.setState({ component: BundleError })
         )
       }
+    }
+
+    componentWillUnmount() {
+      this.mounted = false
     }
 
     render() {
