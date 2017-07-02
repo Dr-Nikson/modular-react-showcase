@@ -2,15 +2,16 @@
 import { Either } from 'ramda-fantasy'
 // import * as maybe from 'flow-static-land/lib/Maybe'
 import * as maybe from 'common/utils/maybe'
+import defaultHandleModule from './defaultHandleModule'
+import loadAsyncBundle from './loadAsyncBundle'
 
 import type { Maybe } from 'flow-static-land/lib/Maybe'
 import type {
   AsyncRouteConfig,
   BundleContext,
-  BundleModule,
   BundleStore,
+  BundleStoreCreatorConfig,
   CreateBundleStore,
-  HandleBundle,
   RouteConfig,
 } from './types'
 
@@ -27,13 +28,7 @@ type BundlesMap = {
 
 
 // TODO: unit tests for this
-const defaultHandleModule = (
-  route: AsyncRouteConfig,
-  bundleModule: BundleModule
-): BundleContext => ({
-  ...route,
-  component: bundleModule.default || bundleModule.component,
-})
+
 
 const findAsyncRoute = (
   routes: RouteConfig[],
@@ -47,21 +42,27 @@ const findAsyncRoute = (
   return route ? maybe.of(route) : maybe.Nothing
 }
 
-const createBundleStore: CreateBundleStore = (
-  routes: RouteConfig[],
-  matchPath: (path: string, route: any) => RouteConfig,
-  handleBundleModule: HandleBundle = defaultHandleModule
-): BundleStore => {
-  const bundles: BundlesMap = {}
+const reduceToMap = (bundles: BundleContext[]): BundlesMap =>
+  bundles
+    .reduce(
+      (res: BundlesMap, context: BundleContext) => ({
+        ...res,
+        [context.bundle.name]: { context }
+      }),
+      {}
+    )
 
-  const loadAsyncBundle = (
+const createBundleStore: CreateBundleStore = (
+  config: BundleStoreCreatorConfig,
+  initialBundles: BundleContext[] = [],
+): BundleStore => {
+  const { routes } = config
+  const handleBundleModule = config.handleBundleModule || defaultHandleModule
+  const bundles: BundlesMap = reduceToMap(initialBundles)
+
+  const saveBundle = (
     asyncRoute: AsyncRouteConfig
-  ): Promise<BundleContext> =>
-    asyncRoute.bundle
-      .load()
-      .then((bundleModule: BundleModule) =>
-        handleBundleModule(asyncRoute, bundleModule)
-      )
+  ): Promise<BundleContext> => loadAsyncBundle(handleBundleModule, asyncRoute)
       .then((context: BundleContext) => {
         bundles[asyncRoute.bundle.name] = { context }
         return context
@@ -72,25 +73,16 @@ const createBundleStore: CreateBundleStore = (
       })
 
   const load = (name: string): Promise<BundleContext> => {
-    const config: Maybe<Promise<BundleContext>> = maybe.map(
-      loadAsyncBundle,
+    const bundleContext: Maybe<Promise<BundleContext>> = maybe.map(
+      saveBundle,
       findAsyncRoute(routes, name)
     )
 
-    return maybe.getOrElse(config, () =>
+    return maybe.getOrElse(bundleContext, () =>
       Promise.reject(
         new Error(`[BundleStore] Config not found for bundle [${name}]`)
       )
     )
-  }
-
-  const loadForUrl = (url: string): Promise<BundleContext[]> => {
-    const promises = routes
-      .filter(r => r.bundle && matchPath(url, r))
-      .map(r => ((r: any): AsyncRouteConfig))
-      .map(loadAsyncBundle)
-
-    return Promise.all(promises)
   }
 
   // TODO: fix type
@@ -104,7 +96,6 @@ const createBundleStore: CreateBundleStore = (
 
   return {
     load,
-    loadForUrl,
     getBundle,
   }
 }

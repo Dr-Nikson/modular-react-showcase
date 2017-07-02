@@ -7,24 +7,26 @@ import { compose, identity } from 'ramda'
 import thunkMiddleware from 'redux-thunk'
 import { routerMiddleware } from 'react-router-redux'
 
-import initialReducers from './initialReducers'
+import defaultReducers from './defaultReducers'
 import withReducersManagement from 'redux-async-bundles/withReducersManagement'
 
 import type {
   ManageableStore,
   ManageableStoreCreator,
+  ReducersMap,
 } from 'redux-async-bundles/types'
 
-export type StoreConfig = {
+export type StoreConfig<S, A> = {
   history: any,
   initialState?: Object,
+  initialReducers: ReducersMap<S, A>,
 }
 
 const isReduxDevToolsEnabled =
   // $FlowFixMe
   __DEVELOPMENT__ && __CLIENT__ && window.devToolsExtension
-const storeFactory = (config: StoreConfig): ManageableStore<*, *> => {
-  const { history, initialState = {} } = config
+const storeFactory = (config: StoreConfig<*, *>): ManageableStore<*, *> => {
+  const { history, initialState = {}, initialReducers } = config
   // Build the middleware for intercepting and dispatching navigation actions
   const middleware = [thunkMiddleware, routerMiddleware(history)]
   // change StoreCreator signature to
@@ -38,7 +40,7 @@ const storeFactory = (config: StoreConfig): ManageableStore<*, *> => {
   // Add the reducer to your store on the `router` key
   // Also apply our middleware for navigating
   const store: ManageableStore<*, *> = finalCreateStore(
-    initialReducers,
+    { ...defaultReducers, ...initialReducers },
     initialState
   )
 

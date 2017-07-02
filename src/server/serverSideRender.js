@@ -12,15 +12,20 @@ import App from 'client/App'
 import Template from './Template'
 import getRoutes from 'common/routing/getRoutes'
 import BundleProvider from 'react-async-bundles/BundleProvider'
+import loadBundlesForUrl from 'react-async-bundles/loadBundlesForUrl'
 import createStore from 'common/redux/createStore'
 
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
 import type {
+  BundleContext,
+  BundleUrlLoaderConfig,
   ServerRenderContext,
-} from '../../packages/react-async-bundles/types'
+} from 'react-async-bundles/types'
 import { matchPath } from 'react-router-dom'
 import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
+import handleReduxModule from 'redux-async-bundles/handleReduxModule'
+import extractReducers from 'redux-async-bundles/extractReducers'
 
 type RenderResult = {
   status: number,
@@ -56,13 +61,15 @@ export const rendererFactory = (template: Template) => {
 
   return (req: $Request, res: $Response): void => {
     const routes = getRoutes()
-    const history = createMemoryHistory()
-    const store = createStore({ history })
-    const createBundleStore = bundleStoreCreatorFactory(store)
-    const bundleStore = createBundleStore(routes, matchPath)
     const handleRenderErrors = Either.either(getEmptyPageAndLog, identity)
 
-    const doServerRender = () => {
+    const doServerRender = (initialBundles: BundleContext[]) => {
+      const history = createMemoryHistory()
+      const initialReducers = extractReducers(initialBundles)
+      const store = createStore({ history, initialReducers })
+      const createBundleStore = bundleStoreCreatorFactory(store)
+      const bundleStore = createBundleStore({ routes }, initialBundles)
+
       const context: ServerRenderContext = {}
       const serverSideApp = (
         <Provider store={store}>
@@ -78,8 +85,19 @@ export const rendererFactory = (template: Template) => {
       return createRenderResult(context, html, store.getState())
     }
 
-    bundleStore.loadForUrl(req.url).then(() => {
-      const renderResult: RenderResult = handleRenderErrors(Try(doServerRender))
+    const loaderConfig: BundleUrlLoaderConfig = {
+      routes,
+      handleBundleModule: handleReduxModule,
+      matchPath,
+    }
+
+    loadBundlesForUrl(
+      loaderConfig,
+      req.url
+    ).then((bundles: BundleContext[]) => {
+      const renderResult: RenderResult = handleRenderErrors(
+        Try(() => doServerRender(bundles))
+      )
 
       renderResult.url
         ? sendRedirect(res, renderResult.status, renderResult.url)

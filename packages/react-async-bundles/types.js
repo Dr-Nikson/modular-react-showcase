@@ -32,7 +32,6 @@ export type RouteConfig = SyncRouteConfig | AsyncRouteConfig
 
 export type BundleStore = {
   load: (name: string) => Promise<BundleContext>,
-  loadForUrl: (url: string) => Promise<BundleContext[]>,
   getBundle: (name: string) => any, // TODO: fix type
 }
 
@@ -41,14 +40,23 @@ export type HandleBundle = (
   bundleModule: BundleModule
 ) => BundleContext
 
-export type CreateBundleStore = (
+export type MatchPath = (path: string, route: any) => RouteConfig
+
+export type BundleStoreCreatorConfig = {
   routes: RouteConfig[],
-  matchPath: (path: string, route: any) => RouteConfig,
-  handleBundleModule: HandleBundle
+  handleBundleModule?: HandleBundle,
+}
+
+export type BundleUrlLoaderConfig =  BundleStoreCreatorConfig & {
+  matchPath: MatchPath,
+}
+
+export type CreateBundleStore = (
+  config: BundleStoreCreatorConfig,
+  initialBundles: BundleContext[],
 ) => BundleStore
 
 export type BundleModule = {
   // default: any,
   component?: ReactClass<any>,
 }
-

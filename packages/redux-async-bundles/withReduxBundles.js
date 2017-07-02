@@ -1,44 +1,27 @@
 // @flow
 import * as maybe from 'common/utils/maybe'
+import handleReduxModule from 'redux-async-bundles/handleReduxModule'
 
 import type {
-  AsyncRouteConfig,
   BundleContext,
-  BundleModule,
   BundleStore,
+  BundleStoreCreatorConfig,
   CreateBundleStore,
-  RouteConfig,
 } from 'react-async-bundles/types'
-import type { ManageableStore, ReduxBundle } from './types'
+import type { ManageableStore, ReduxBundle, ReduxBundleContext } from './types'
 
-type ReduxBundleModule<S, A> = BundleModule & {
-  redux?: ReduxBundle<S, A>,
-}
-
-type ReduxBundleContext<S, A> = BundleContext & {
-  redux?: ReduxBundle<S, A>,
-}
-
-const handleReduxModule = (
-  route: AsyncRouteConfig,
-  bundleModule: BundleModule
-): ReduxBundleContext<*, *> => ({
-  ...route,
-  component: (bundleModule: any).default || bundleModule.component,
-  redux: ((bundleModule: any): ReduxBundleModule<*, *>).redux,
-})
 
 const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
   return (createBundleStore: CreateBundleStore) => {
     return (
-      routes: RouteConfig[],
-      matchPath: (path: string, route: any) => RouteConfig
+      config: BundleStoreCreatorConfig,
+      initialBundles: BundleContext[] = [],
     ): BundleStore => {
-      const bundleStore = createBundleStore(
-        routes,
-        matchPath,
-        handleReduxModule
-      )
+      const finalConfig = {
+        ...config,
+        handleBundleModule: handleReduxModule
+      }
+      const bundleStore = createBundleStore(finalConfig, initialBundles)
 
       const loadReduxModule = (context: BundleContext): BundleContext => {
         // Add reducer to ManageableStore
@@ -53,16 +36,12 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
         return bundleStore.load(name).then(loadReduxModule)
       }
 
-      const loadForUrl = (url: string): Promise<BundleContext[]> => {
-        return bundleStore
-          .loadForUrl(url)
-          .then((bundles: BundleContext[]) => bundles.map(loadReduxModule))
-      }
-
+      // TODO: maybe we don't really need it:
+      // reducers already loaded at this point (by inserting initial reducers)
+      initialBundles.map(loadReduxModule)
       return {
         ...bundleStore,
         load,
-        loadForUrl,
       }
     }
   }
