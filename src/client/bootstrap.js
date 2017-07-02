@@ -9,37 +9,30 @@ import { renderApp } from './renderApp'
 // $FlowFixMe
 import type { ReactClass } from 'react'
 import type { CurriedFunction2, CurriedFunction3 } from 'ramda'
-import type { BundleContext } from 'common/routing/types'
-import createBundleStore from 'common/routing/createBundleStore'
-import { handleReduxModule } from 'common/utils/bundles'
 import { matchPath } from 'react-router-dom'
-
-const history = createHistory()
-const location = history.location
-const url = location.pathname + location.search + location.hash
+import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
 
 type RenderAppFunction = (component: ReactClass<any>) => void
 
+const getUrl = (history: any) => {
+  const location = history.location
+  return location.pathname + location.search + location.hash
+}
+
 const bootstrapApp = (): Promise<RenderAppFunction> => {
-  const bundleStore = createBundleStore(
-    getRoutes(),
-    matchPath,
-    handleReduxModule
-  )
-  return bundleStore
-    .loadForUrl(url)
-    .then((): Function => {
-      const render: Function = curry(renderApp)
-      console.info('Bundles are loaded!')
+  const initialState = window.__INITIAL_STATE__
+  const history = createHistory()
 
-      return (render(bundleStore): any)
-    })
-    .then((renderFn: Function): RenderAppFunction => {
-      const initialState = window.__INITIAL_STATE__
-      const store = createStore({ history, initialState })
+  const store = createStore({ history, initialState })
+  const createBundleStore = bundleStoreCreatorFactory(store)
+  const bundleStore = createBundleStore(getRoutes(), matchPath)
 
-      return renderFn(store, history)
-    })
+  return bundleStore.loadForUrl(getUrl(history)).then((): Function => {
+    const render: Function = curry(renderApp)
+    console.info('Bundles are loaded!')
+
+    return (render(bundleStore, store, history): any)
+  })
 }
 
 export default bootstrapApp

@@ -17,9 +17,8 @@ import createStore from 'common/redux/createStore'
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
 import type { ServerRenderContext } from '../common/routing/types'
-import createBundleStore from 'common/routing/createBundleStore'
 import { matchPath } from 'react-router-dom'
-import { handleReduxModule } from 'common/utils/bundles'
+import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
 
 type RenderResult = {
   status: number,
@@ -55,13 +54,14 @@ export const rendererFactory = (template: Template) => {
 
   return (req: $Request, res: $Response): void => {
     const routes = getRoutes()
-    const bundleStore = createBundleStore(routes, matchPath, handleReduxModule)
+    const history = createMemoryHistory()
+    const store = createStore({ history })
+    const createBundleStore = bundleStoreCreatorFactory(store)
+    const bundleStore = createBundleStore(routes, matchPath)
     const handleRenderErrors = Either.either(getEmptyPageAndLog, identity)
 
     const doServerRender = () => {
       const context: ServerRenderContext = {}
-      const history = createMemoryHistory()
-      const store = createStore({ history })
       const serverSideApp = (
         <Provider store={store}>
           <StaticRouter context={context} location={req.url}>
