@@ -12,9 +12,10 @@ import getRoutes from 'common/routing/getRoutes'
 // $FlowFixMe
 import type { ReactClass } from 'react'
 import type { BundleContext } from 'common/routing/types'
+import type { BundleStore } from 'common/routing/createBundleStore'
 
 export const renderApp = (
-  bundles: BundleContext[],
+  bundleStore: BundleStore,
   store: Object,
   history: Object,
   Component: ReactClass<any>
@@ -23,7 +24,7 @@ export const renderApp = (
     <AppContainer>
       <Provider store={store}>
         <ConnectedRouter history={history}>
-          <BundleProvider bundles={bundles} routes={getRoutes()}>
+          <BundleProvider store={bundleStore}>
             <Component />
           </BundleProvider>
         </ConnectedRouter>

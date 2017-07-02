@@ -6,11 +6,11 @@ import { shit } from 'common/bundles/test/some'
 import type { RouteConfig } from 'common/routing/types'
 
 const getRoutes = (): RouteConfig[] => [
-  { path: '/', fetchData: () => true },
+  // { path: '/', fetchData: () => true },
   { path: '/item', bundle: itemBundle },
-  { path: '/details', bundle: detailsBundle },
+  { path: '/item/details', bundle: detailsBundle },
   { path: '/pupper', bundle: pupperBundle },
-  { path: shit, component: true },
+  // { path: shit, component: true },
 ]
 
 export default getRoutes

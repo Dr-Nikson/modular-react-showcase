@@ -5,7 +5,7 @@ import type { BundleConfig } from 'common/routing/types'
 const name: string = 'pupper-bundle'
 // prettier-ignore
 const load: Function = () => new Promise(resolve => setTimeout(resolve, 1500))
-  .then(() => import(/* webpackChunkName: "pupper-bundle" */ 'common/bundles/pupper/SuperComponent'))
+  .then(() => import(/* webpackChunkName: "pupper-bundle" */ 'common/bundles/pupper/entry'))
 
 export const bundle: BundleConfig = {
   name,

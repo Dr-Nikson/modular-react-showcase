@@ -1,11 +1,10 @@
 // @flow
 import React, { Component, PropTypes } from 'react'
-import { loadAsyncBundle } from 'common/routing/bundleLoadingUtils'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
-import type { RouteConfig, BundleContext } from 'common/routing/types'
-import type { AsyncRouteConfig } from 'common/routing/types'
+import type { BundleContext } from 'common/routing/types'
+import type { BundleStore } from 'common/routing/createBundleStore'
 
 type BundleLoadingError = {
   bundleName: string,
@@ -13,8 +12,10 @@ type BundleLoadingError = {
 }
 
 type BundleProviderProps = {
-  bundles: BundleContext[],
-  routes: RouteConfig[],
+  // loadBundle?: (config: AsyncRouteConfig) => Promise<BundleContext>,
+  // bundles: BundleContext[],
+  // routes: RouteConfig[],
+  store: BundleStore,
   children: any,
 }
 
@@ -24,88 +25,34 @@ type BundleProviderState = {
 }
 
 type BundleProviderChildrenContext = {
-  loadBundle: (name: string) => Promise<ReactClass<any>>,
+  loadBundleComponent: (name: string) => Promise<ReactClass<any>>,
   getBundleComponent: (name: string) => ReactClass<any>,
 }
 
-class BundleProvider
-  extends Component<void, BundleProviderProps, BundleProviderState> {
+class BundleProvider extends Component<void, BundleProviderProps, void> {
   static childContextTypes: any
-  state = {
-    bundles: [],
-    errors: [],
-  }
 
-  constructor(props: BundleProviderProps, context: any) {
-    super(props, context)
-    this.state = {
-      bundles: props.bundles,
-      errors: [],
-    }
-  }
+  loadBundleComponent = (bundleName: string): Promise<ReactClass<any>> => {
+    const { store } = this.props
 
-  _findAsyncRoute = (name: string): ?AsyncRouteConfig => {
-    const { routes } = this.props
-    const route = routes
-      .filter((r: any) => !!r.bundle)
-      .map((r: any) => (r: AsyncRouteConfig))
-      .find(r => r.bundle.name === name)
-
-    return route
-  }
-
-  _findBundle = (name: string): ?BundleContext => {
-    const { bundles } = this.state
-    const bundle = bundles.find(r => r.bundle.name === name)
-
-    return bundle
-  }
-
-  _saveLoadedBundle = (bundle: BundleContext): Promise<BundleContext> => {
-    let resolver = null
-    const p = new Promise(resolve => (resolver = resolve))
-
-    this.setState(
-      { bundles: [...this.state.bundles, bundle] },
-      () => resolver && resolver(bundle.component)
-    )
-
-    return p
-  }
-
-  _saveLoadingError = (bundleName: string, details: any): Promise<any> => {
-    this.setState({
-      errors: [...this.state.errors, { bundleName, details }],
-    })
-
-    return Promise.reject(details)
-  }
-
-  loadBundle = (bundleName: string): Promise<any> => {
-    const targetRoute: ?AsyncRouteConfig = this._findAsyncRoute(bundleName)
-    return targetRoute
-      ? loadAsyncBundle(targetRoute).then(this._saveLoadedBundle, e =>
-          this._saveLoadingError(bundleName, e)
-        )
-      : Promise.reject(`Config not found for [${bundleName}]`)
+    return store
+      .load(bundleName)
+      .then((context: BundleContext) => context.component)
   }
 
   getBundleComponent = (bundleName: string): any => {
-    const targetBundle: ?BundleContext = this._findBundle(bundleName)
-    const component = targetBundle && targetBundle.component
-    const error =
-      !component && this.state.errors.find(er => er.bundleName === bundleName)
+    const { store } = this.props
 
-    if (error) {
-      throw new Error(error.details)
-    }
-
-    return component
+    return store
+      .getBundle(bundleName)
+      .map((context: ?BundleContext): ?ReactClass<any> => {
+        return context && context.component
+      })
   }
 
   getChildContext(): BundleProviderChildrenContext {
     return {
-      loadBundle: this.loadBundle,
+      loadBundleComponent: this.loadBundleComponent,
       getBundleComponent: this.getBundleComponent,
     }
   }
@@ -117,7 +64,7 @@ class BundleProvider
 }
 
 BundleProvider.childContextTypes = {
-  loadBundle: PropTypes.func.isRequired,
+  loadBundleComponent: PropTypes.func.isRequired,
   getBundleComponent: PropTypes.func.isRequired,
 }
 

@@ -7,14 +7,16 @@ import BundleError from 'common/routing/components/BundleError'
 
 // $FlowFixMe
 import type { ReactClass, Element } from 'react'
+import type { BundleContext } from 'common/routing/types'
 
 type BundleState = {
   component: ReactClass<any> | null,
 }
 
 type BundleRouteContext = {
-  loadBundle: (name: string) => Promise<ReactClass<any>>,
-  getBundleComponent: (name: string) => ReactClass<any>,
+  loadBundleComponent: (name: string) => Promise<ReactClass<any>>,
+  // TODO fix types: it return either now
+  getBundleComponent: (name: string) => any,
 }
 
 const renderBundleComponent = (BundleComponent, props) => (
@@ -37,19 +39,23 @@ const asyncBundle = (bundleName: string) => {
 
     getComponent(): ReactClass<any> {
       const { getBundleComponent } = this.context
+
       return Either.either(
         error => BundleError,
         c => c || null,
-        Try(() => getBundleComponent(bundleName))
+        getBundleComponent(bundleName)
       )
     }
 
     componentDidMount() {
       const { component } = this.state
-      const { loadBundle } = this.context
+      const { loadBundleComponent } = this.context
 
       if (!component) {
-        loadBundle(bundleName).then(component => this.setState({ component }))
+        loadBundleComponent(bundleName).then(
+          component => this.setState({ component }),
+          error => this.setState({ component: BundleError })
+        )
       }
     }
 
@@ -63,7 +69,7 @@ const asyncBundle = (bundleName: string) => {
   }
 
   Bundle.contextTypes = {
-    loadBundle: PropTypes.func.isRequired,
+    loadBundleComponent: PropTypes.func.isRequired,
     getBundleComponent: PropTypes.func.isRequired,
   }
 
