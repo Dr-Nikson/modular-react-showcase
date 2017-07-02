@@ -2,12 +2,10 @@
 import React, { PropTypes, PureComponent } from 'react'
 import { Either } from 'ramda-fantasy'
 
-import Try from 'common/utils/Try'
 import BundleError from 'common/routing/components/BundleError'
 
 // $FlowFixMe
 import type { ReactClass, Element } from 'react'
-import type { BundleContext } from 'common/routing/types'
 
 type BundleState = {
   component: ReactClass<any> | null,

@@ -11,12 +11,14 @@ import Try from 'common/utils/Try'
 import App from 'client/App'
 import Template from './Template'
 import getRoutes from 'common/routing/getRoutes'
-import BundleProvider from 'common/routing/components/BundleProvider'
+import BundleProvider from 'react-async-bundles/BundleProvider'
 import createStore from 'common/redux/createStore'
 
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
-import type { ServerRenderContext } from '../common/routing/types'
+import type {
+  ServerRenderContext,
+} from '../../packages/react-async-bundles/types'
 import { matchPath } from 'react-router-dom'
 import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
 

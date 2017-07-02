@@ -3,7 +3,8 @@ import React from 'react'
 import { Route } from 'react-router-dom'
 
 import type { Element } from 'react'
-import type { ServerRenderContext } from '../types'
+// TODO: should I move server render context?
+import type { ServerRenderContext } from 'react-async-bundles/types'
 
 type StatusProps = {
   code: number,

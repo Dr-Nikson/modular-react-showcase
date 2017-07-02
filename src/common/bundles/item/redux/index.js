@@ -2,7 +2,7 @@
 import fetch from 'isomorphic-fetch'
 import { values } from 'ramda'
 import pupperReduxBundle, { doGood } from 'common/bundles/pupper/redux/index'
-import createReduxBundle from 'common/redux/createReduxBundle'
+import createReduxBundle from 'redux-async-bundles/createReduxBundle'
 
 type ItemsState = {
   +items: Object[],

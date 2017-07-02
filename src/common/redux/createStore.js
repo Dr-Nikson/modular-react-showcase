@@ -8,12 +8,12 @@ import thunkMiddleware from 'redux-thunk'
 import { routerMiddleware } from 'react-router-redux'
 
 import initialReducers from './initialReducers'
-import withReducersManagement from 'common/redux/withReducersManagement'
+import withReducersManagement from 'redux-async-bundles/withReducersManagement'
 
 import type {
   ManageableStore,
   ManageableStoreCreator,
-} from 'common/redux/withReducersManagement'
+} from 'redux-async-bundles/types'
 
 export type StoreConfig = {
   history: any,

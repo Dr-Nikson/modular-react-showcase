@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import type { Element } from 'react'
+import asyncBundle from 'react-async-bundles/asyncBundle'
 
-import asyncBundle from 'common/routing/asyncBundle'
-import type { BundleConfig } from 'common/routing/types'
+import type { Element } from 'react'
+import type { BundleConfig } from 'react-async-bundles/types'
 
 const name: string = 'item-bundle'
 // prettier-ignore

@@ -4,26 +4,17 @@ import { Either } from 'ramda-fantasy'
 import * as maybe from 'common/utils/maybe'
 
 import type { Maybe } from 'flow-static-land/lib/Maybe'
-
-// $FlowFixMe
-import type { ReactClass } from 'react'
 import type {
-  BundleContext,
-  RouteConfig,
   AsyncRouteConfig,
-} from 'common/routing/types'
+  BundleContext,
+  BundleModule,
+  BundleStore,
+  CreateBundleStore,
+  HandleBundle,
+  RouteConfig,
+} from './types'
 
-export type BundleStore = {
-  load: (name: string) => Promise<BundleContext>,
-  loadForUrl: (url: string) => Promise<BundleContext[]>,
-  getBundle: (name: string) => any, // TODO: fix type
-}
 
-export type CreateBundleStore = (
-  routes: RouteConfig[],
-  matchPath: (path: string, route: any) => RouteConfig,
-  handleBundleModule: HandleBundle
-) => BundleStore
 
 type BundleMeta = {
   context?: BundleContext,
@@ -34,15 +25,6 @@ type BundlesMap = {
   [string]: BundleMeta,
 }
 
-export type BundleModule = {
-  // default: any,
-  component?: ReactClass<any>,
-}
-
-export type HandleBundle = (
-  route: AsyncRouteConfig,
-  bundleModule: BundleModule
-) => BundleContext
 
 // TODO: unit tests for this
 const defaultHandleModule = (

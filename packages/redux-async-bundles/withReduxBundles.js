@@ -2,38 +2,30 @@
 import * as maybe from 'common/utils/maybe'
 
 import type {
-  BundleModule,
-  CreateBundleStore,
-} from 'common/routing/createBundleStore'
-import type {
   AsyncRouteConfig,
   BundleContext,
+  BundleModule,
+  BundleStore,
+  CreateBundleStore,
   RouteConfig,
-} from 'common/routing/types'
-import type { ReduxBundle } from 'common/redux/createReduxBundle'
-import type { BundleStore } from 'common/routing/createBundleStore'
-import type { ManageableStore } from 'common/redux/withReducersManagement'
+} from 'react-async-bundles/types'
+import type { ManageableStore, ReduxBundle } from './types'
 
-type ReduxBundleModule = BundleModule & {
-  redux?: ReduxBundle,
+type ReduxBundleModule<S, A> = BundleModule & {
+  redux?: ReduxBundle<S, A>,
 }
 
-type ReduxBundleContext = BundleContext & {
-  redux?: ReduxBundle,
+type ReduxBundleContext<S, A> = BundleContext & {
+  redux?: ReduxBundle<S, A>,
 }
-
-export type CreateReduxBundleStore = (
-  routes: RouteConfig[],
-  matchPath: (path: string, route: any) => RouteConfig
-) => BundleStore
 
 const handleReduxModule = (
   route: AsyncRouteConfig,
   bundleModule: BundleModule
-): ReduxBundleContext => ({
+): ReduxBundleContext<*, *> => ({
   ...route,
   component: (bundleModule: any).default || bundleModule.component,
-  redux: ((bundleModule: any): ReduxBundleModule).redux,
+  redux: ((bundleModule: any): ReduxBundleModule<*, *>).redux,
 })
 
 const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
@@ -51,8 +43,8 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
       const loadReduxModule = (context: BundleContext): BundleContext => {
         // Add reducer to ManageableStore
         maybe.map(
-          (redux: ReduxBundle) => reduxStore.addReducers(redux.reducer),
-          maybe.inj(((context: any): ReduxBundleContext).redux)
+          (redux: ReduxBundle<*, *>) => reduxStore.addReducers(redux.reducer),
+          maybe.inj(((context: any): ReduxBundleContext<*, *>).redux)
         )
         return context
       }

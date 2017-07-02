@@ -3,31 +3,19 @@ import React, { Component, PropTypes } from 'react'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
-import type { BundleContext } from 'common/routing/types'
-import type { BundleStore } from 'common/routing/createBundleStore'
+import type { BundleContext, BundleStore } from './types'
 
-type BundleLoadingError = {
-  bundleName: string,
-  details: any,
-}
 
 type BundleProviderProps = {
-  // loadBundle?: (config: AsyncRouteConfig) => Promise<BundleContext>,
-  // bundles: BundleContext[],
-  // routes: RouteConfig[],
   store: BundleStore,
   children: any,
-}
-
-type BundleProviderState = {
-  bundles: BundleContext[],
-  errors: BundleLoadingError[],
 }
 
 type BundleProviderChildrenContext = {
   loadBundleComponent: (name: string) => Promise<ReactClass<any>>,
   getBundleComponent: (name: string) => ReactClass<any>,
 }
+
 
 class BundleProvider extends Component<void, BundleProviderProps, void> {
   static childContextTypes: any

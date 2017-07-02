@@ -1,6 +1,6 @@
 // @flow
 import { values } from 'ramda'
-import createReduxBundle from 'common/redux/createReduxBundle'
+import createReduxBundle from 'redux-async-bundles/createReduxBundle'
 
 type DoSomethingActionType = 'DO_SOMETHING_GOOD'
 

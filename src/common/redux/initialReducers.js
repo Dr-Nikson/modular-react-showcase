@@ -1,7 +1,6 @@
 // @flow
 import { routerReducer } from 'react-router-redux'
-
-import type { ReducersMap } from 'common/redux/withReducersManagement'
+import type { ReducersMap } from 'redux-async-bundles/types'
 
 const initialReducers: ReducersMap<*, *> = {
   router: routerReducer,

@@ -3,29 +3,18 @@ import { combineReducers } from 'redux'
 import type {
   Store,
   CombinedReducer,
-  Reducer,
   StoreCreator,
-  StoreEnhancer,
 } from 'redux'
 
-export type ReducersMap<S, A> = {
-  [string]: Reducer<S, A>,
-}
+import type {
+  ManageableStore,
+  ManageableStoreCreator,
+  ManageableStoreEnhancer,
+  ReducersMap,
+} from './types'
 
-export type ManageableStore<S, A> = Store<S, A> & {
-  addReducers: (reducers: ReducersMap<*, *>) => void,
-}
 
-export type ManageableStoreCreator<S, A> = (
-  reducer: ReducersMap<S, A>,
-  preloadedState: S,
-  enhancer: ?StoreEnhancer<S, A>
-) => ManageableStore<S, A>
-
-export type ManageableStoreEnhancer<S, A> = (
-  createStore: StoreCreator<S, A>
-) => ManageableStoreCreator<S, A>
-
+// TODO: try to replace <*, *> to <S, A>
 const withReducersManagement = (): ManageableStoreEnhancer<*, *> => {
   return (createStore: StoreCreator<*, *>): ManageableStoreCreator<*, *> => {
     return (
