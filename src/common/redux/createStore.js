@@ -1,12 +1,12 @@
 // @flow
-import { createStore, applyMiddleware } from 'redux'
+import { createStore } from 'redux'
 import { Route } from 'react-router'
 import { compose, identity } from 'ramda'
 import thunkMiddleware from 'redux-thunk'
 import { routerMiddleware } from 'react-router-redux'
 
 import withReducersManagement from 'redux-async-bundles/withReducersManagement'
-import { withActionChain } from 'redux-action-chain'
+import { applyMiddlewareWithChains, actionSanitizer } from 'redux-actions-chain'
 import defaultReducers from './defaultReducers'
 
 import type {
@@ -28,17 +28,12 @@ const storeFactory = (config: StoreConfig<*, *>): ManageableStore<*, *> => {
   const { history, initialState = {}, initialReducers } = config
   // Build the middleware for intercepting and dispatching navigation actions
   const middleware = [thunkMiddleware, routerMiddleware(history)]
-
-  const actionSanitizer = action =>
-    action.chainName
-      ? { ...action, type: `Chain[${action.chainName}] > ${action.type}` }
-      : action
   // change StoreCreator signature to
   // (reducersMap, stateObject, enhancer?) => ManageableStore
   const finalCreateStore: ManageableStoreCreator<*, *> = compose(
     withReducersManagement(),
-    withActionChain(),
-    applyMiddleware(...middleware),
+    applyMiddlewareWithChains(...middleware),
+    // applyMiddleware(...middleware),
     isReduxDevToolsEnabled
       ? window.devToolsExtension({ actionSanitizer })
       : identity

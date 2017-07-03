@@ -1,15 +1,30 @@
 // @flow
-import type { Reducer, Store, StoreCreator } from 'redux'
+import type {
+  Middleware,
+  MiddlewareAPI,
+  Reducer,
+  Store,
+  StoreCreator,
+} from 'redux'
 import type { ActionsChain } from './types'
+import { compose } from 'redux'
 
-const withActionChain = () => {
+const applyMiddlewareWithChains = (...middlewares: Middleware<*, *>[]) => {
   return (createStore: StoreCreator<*, *>): StoreCreator<*, *> => {
     return (reducer: Reducer<*, *>, preloadedState: any, enhancer?: any) => {
       const store: Store<*, *> = createStore(reducer, preloadedState, enhancer)
 
+      let dispatchesInProgress: number = 0
       let currentListeners = []
       let nextListeners = currentListeners
-      let isDispatching = false
+
+      let dispatch = store.dispatch
+      const middlewareAPI: MiddlewareAPI<*, *> = {
+        getState: store.getState,
+        dispatch: (action) => dispatch(action)
+      }
+      const chain = middlewares.map(middleware => middleware(middlewareAPI))
+      const dispatchToMiddleware = compose(...chain)(store.dispatch)
 
       function ensureCanMutateNextListeners() {
         if (nextListeners === currentListeners) {
@@ -48,31 +63,42 @@ const withActionChain = () => {
         }
       }
 
-      const dispatch = (action: Object | ActionsChain) => {
-        /*if (isDispatching) {
-          throw new Error('Reducers may not dispatch actions.')
-        }*/
+      const notifyAfterDispatch = () => {
+        // if something happen with store outside of out dispatch method
+        // for example - async action was fired from middleware
+        if (dispatchesInProgress === 0) {
+          callListeners()
+        }
+      }
 
+      dispatch = (action: Function | Object | ActionsChain) => {
         try {
-          isDispatching = true
+          dispatchesInProgress += 1
 
           if (!action.chain) {
-            store.dispatch(action)
+            dispatchToMiddleware(action)
           } else {
-            action.chain.map(subAction => {
-              store.dispatch({ ...subAction, chainName: action.type || '' })
+            action.chain.map((subAction, idx) => {
+              dispatchToMiddleware(
+                typeof subAction === 'function'
+                  ? subAction
+                  : {
+                    ...subAction,
+                    chainName: `Chain(${(action: any).type || ''})[${idx}]`,
+                  }
+              )
             })
           }
-
-        } finally {
-          isDispatching = false
+        }
+        finally {
+          dispatchesInProgress -= 1
         }
 
-        callListeners()
+        notifyAfterDispatch()
         return (action: any)
       }
 
-
+      store.subscribe(notifyAfterDispatch)
       return {
         ...store,
         dispatch,
@@ -82,4 +108,4 @@ const withActionChain = () => {
   }
 }
 
-export default withActionChain
+export default applyMiddlewareWithChains

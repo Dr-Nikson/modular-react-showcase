@@ -1,6 +1,7 @@
 // @flow
 import { values } from 'ramda'
 import createReduxBundle from 'redux-async-bundles/createReduxBundle'
+import { createChain } from 'redux-actions-chain'
 
 type DoSomethingActionType = 'DO_SOMETHING_GOOD'
 type SayWordActionType = 'SAY_WORD'
@@ -46,20 +47,35 @@ export const doGood = () => {
   }
 }
 
-export const sayWord = () => {
+export const sayWord = (input?: string) => {
   const words = ['hi, my', 'name', 'chickkky-ckickky', 'slim shady']
 
   return {
     type: actionTypes.sayWord,
-    payload: { word: words[Math.floor(Math.random() * words.length)] },
+    payload: { word: input || words[Math.floor(Math.random() * words.length)] },
+  }
+}
+
+export const someAsyncAction = () => {
+  return (dispatch: Function) => {
+    const p = new Promise(resolve =>
+      resolve(Math.random() >= 0.5 ? 'yep' : Promise.reject('nope'))
+    )
+
+    dispatch(sayWord(' GOP STOP '))
+
+    return p.then(
+      word => dispatch(sayWord(word)),
+      word => dispatch(sayWord(word))
+    )
   }
 }
 
 export const runForYourLife = () => {
-  return {
-    type: 'runForYourLife',
-    chain: [doGood(), sayWord()],
-  }
+  return createChain('runForYourLife')
+    .add(doGood())
+    .add(sayWord())
+    .add(someAsyncAction())
 }
 
 export default createReduxBundle(values(actionTypes), { pupper: pupperReducer })
