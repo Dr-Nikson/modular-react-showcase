@@ -1,14 +1,13 @@
 // @flow
-import { createStore, applyMiddleware } from 'redux'
-
+import { createStore } from 'redux'
 import { Route } from 'react-router'
-
 import { compose, identity } from 'ramda'
 import thunkMiddleware from 'redux-thunk'
 import { routerMiddleware } from 'react-router-redux'
 
-import defaultReducers from './defaultReducers'
 import withReducersManagement from 'redux-async-bundles/withReducersManagement'
+import { applyMiddlewareWithChains, actionSanitizer } from 'redux-actions-chain'
+import defaultReducers from './defaultReducers'
 
 import type {
   ManageableStore,
@@ -33,8 +32,11 @@ const storeFactory = (config: StoreConfig<*, *>): ManageableStore<*, *> => {
   // (reducersMap, stateObject, enhancer?) => ManageableStore
   const finalCreateStore: ManageableStoreCreator<*, *> = compose(
     withReducersManagement(),
-    applyMiddleware(...middleware),
-    isReduxDevToolsEnabled ? window.devToolsExtension() : identity
+    applyMiddlewareWithChains(...middleware),
+    // applyMiddleware(...middleware),
+    isReduxDevToolsEnabled
+      ? window.devToolsExtension({ actionSanitizer })
+      : identity
   )(createStore)
 
   // Add the reducer to your store on the `router` key
