@@ -22,6 +22,7 @@ class App extends PureComponent {
           <li><Link to="/item">Item (async)</Link></li>
           <li><Link to="/item/details">Item details   (async)</Link></li>
           <li><Link to="/test">Testo</Link></li>
+          <li><Link to="/pupper">Supper-pupper!</Link></li>
         </ul>
         <Switch>
           <Route exact path="/" component={HomePage} />
