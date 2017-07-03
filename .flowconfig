@@ -8,4 +8,5 @@
 [options]
 module.system.node.resolve_dirname=node_modules
 module.system.node.resolve_dirname=src
+module.system.node.resolve_dirname=packages
 module.ignore_non_literal_requires=true

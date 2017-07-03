@@ -2,23 +2,30 @@
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
-import { compose, identity } from 'ramda'
+import { curry, compose, identity } from 'ramda'
 import { Either } from 'ramda-fantasy'
 import createMemoryHistory from 'history/createMemoryHistory'
+import { Provider } from 'react-redux'
 
 import Try from 'common/utils/Try'
 import App from 'client/App'
 import Template from './Template'
 import getRoutes from 'common/routing/getRoutes'
-import { loadAsyncBundles } from 'common/routing/bundleLoadingUtils'
-import BundleProvider from 'common/routing/components/BundleProvider'
+import BundleProvider from 'react-async-bundles/BundleProvider'
+import loadBundlesForUrl from 'react-async-bundles/loadBundlesForUrl'
 import createStore from 'common/redux/createStore'
 
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
-import type { ServerRenderContext } from '../common/routing/types'
-import type { BundleContext } from 'common/routing/types'
-import { Provider } from 'react-redux'
+import type {
+  BundleContext,
+  BundleUrlLoaderConfig,
+  ServerRenderContext,
+} from 'react-async-bundles/types'
+import { matchPath } from 'react-router-dom'
+import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
+import handleReduxModule from 'redux-async-bundles/handleReduxModule'
+import extractReducers from 'redux-async-bundles/extractReducers'
 
 type RenderResult = {
   status: number,
@@ -55,14 +62,19 @@ export const rendererFactory = (template: Template) => {
   return (req: $Request, res: $Response): void => {
     const routes = getRoutes()
     const handleRenderErrors = Either.either(getEmptyPageAndLog, identity)
-    const doServerRender = (bundles: BundleContext[]) => {
-      const context: ServerRenderContext = { bundles }
+
+    const doServerRender = (initialBundles: BundleContext[]) => {
       const history = createMemoryHistory()
-      const store = createStore({ history })
+      const initialReducers = extractReducers(initialBundles)
+      const store = createStore({ history, initialReducers })
+      const createBundleStore = bundleStoreCreatorFactory(store)
+      const bundleStore = createBundleStore({ routes }, initialBundles)
+
+      const context: ServerRenderContext = {}
       const serverSideApp = (
         <Provider store={store}>
           <StaticRouter context={context} location={req.url}>
-            <BundleProvider bundles={bundles} routes={routes}>
+            <BundleProvider store={bundleStore}>
               <App />
             </BundleProvider>
           </StaticRouter>
@@ -73,9 +85,18 @@ export const rendererFactory = (template: Template) => {
       return createRenderResult(context, html, store.getState())
     }
 
-    loadAsyncBundles(routes, req.url).then(bundles => {
+    const loaderConfig: BundleUrlLoaderConfig = {
+      routes,
+      handleBundleModule: handleReduxModule,
+      matchPath,
+    }
+
+    loadBundlesForUrl(
+      loaderConfig,
+      req.url
+    ).then((bundles: BundleContext[]) => {
       const renderResult: RenderResult = handleRenderErrors(
-        Try(() => doServerRender((bundles: BundleContext[])))
+        Try(() => doServerRender(bundles))
       )
 
       renderResult.url

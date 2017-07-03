@@ -2,7 +2,6 @@
 import React, { PropTypes, PureComponent } from 'react'
 import { Either } from 'ramda-fantasy'
 
-import Try from 'common/utils/Try'
 import BundleError from 'common/routing/components/BundleError'
 
 // $FlowFixMe
@@ -13,8 +12,9 @@ type BundleState = {
 }
 
 type BundleRouteContext = {
-  loadBundle: (name: string) => Promise<ReactClass<any>>,
-  getBundleComponent: (name: string) => ReactClass<any>,
+  loadBundleComponent: (name: string) => Promise<ReactClass<any>>,
+  // TODO fix types: it return either now
+  getBundleComponent: (name: string) => any,
 }
 
 const renderBundleComponent = (BundleComponent, props) => (
@@ -24,6 +24,7 @@ const renderBundleLoading = () => <div>loading bundle...</div>
 
 const asyncBundle = (bundleName: string) => {
   class Bundle extends PureComponent<void, any, BundleState> {
+    mounted: boolean = false
     state = {
       component: null,
     }
@@ -37,20 +38,30 @@ const asyncBundle = (bundleName: string) => {
 
     getComponent(): ReactClass<any> {
       const { getBundleComponent } = this.context
+
       return Either.either(
         error => BundleError,
         c => c || null,
-        Try(() => getBundleComponent(bundleName))
+        getBundleComponent(bundleName)
       )
     }
 
     componentDidMount() {
       const { component } = this.state
-      const { loadBundle } = this.context
+      const { loadBundleComponent } = this.context
+
+      this.mounted = true
 
       if (!component) {
-        loadBundle(bundleName).then(component => this.setState({ component }))
+        loadBundleComponent(bundleName).then(
+          component => this.mounted && this.setState({ component }),
+          error => this.mounted && this.setState({ component: BundleError })
+        )
       }
+    }
+
+    componentWillUnmount() {
+      this.mounted = false
     }
 
     render() {
@@ -63,7 +74,7 @@ const asyncBundle = (bundleName: string) => {
   }
 
   Bundle.contextTypes = {
-    loadBundle: PropTypes.func.isRequired,
+    loadBundleComponent: PropTypes.func.isRequired,
     getBundleComponent: PropTypes.func.isRequired,
   }
 

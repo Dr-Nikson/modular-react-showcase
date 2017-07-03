@@ -1,14 +1,14 @@
 // @flow
 import * as React from 'react'
-import type { Element } from 'react'
+import asyncBundle from 'react-async-bundles/asyncBundle'
 
-import asyncBundle from 'common/routing/asyncBundle'
-import type { BundleConfig } from 'common/routing/types'
+import type { Element } from 'react'
+import type { BundleConfig } from 'react-async-bundles/types'
 
 const name: string = 'item-bundle'
 // prettier-ignore
 const load: Function = () => new Promise(resolve => setTimeout(resolve, 1500))
-  .then(() => import(/* webpackChunkName: "item-bundle" */ 'common/bundles/item/ItemInfo'))
+  .then(() => import(/* webpackChunkName: "item-bundle" */ 'common/bundles/item/entry'))
 
 export const bundle: BundleConfig = {
   name,

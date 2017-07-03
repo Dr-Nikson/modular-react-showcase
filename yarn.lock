@@ -1706,6 +1706,10 @@ flow-parser@0.45.0:
   version "0.45.0"
   resolved "https://registry.yarnpkg.com/flow-parser/-/flow-parser-0.45.0.tgz#aa29d4ae27f06aa02817772bba0fcbefef7e62f0"
 
+flow-static-land@^0.2.7:
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/flow-static-land/-/flow-static-land-0.2.7.tgz#937f9dcb2780889a609155e5d1a55a993bc2ffb3"
+
 flow-typed@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/flow-typed/-/flow-typed-2.1.2.tgz#468f7a8b6bc18689856a1d101713b23bb39f01e4"

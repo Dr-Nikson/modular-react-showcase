@@ -23,9 +23,11 @@ module.exports = function(env) {
     port: process.env.PORT || 3000,
     projectPath: __dirname,
     sourcePath: path.join(__dirname, `src/`),
+    packagesPath: path.join(__dirname, `packages/`),
     buildDirectory: path.join(__dirname, `build/${!!(env && env.node) ? 'private' : 'public'}`),
   }
-  const { sourcePath, buildDirectory, projectPath, isProd, nodeBuild, port, host } = config
+  const { sourcePath, buildDirectory, projectPath, packagesPath } = config
+  const { isProd, nodeBuild, port, host } = config
 
   return {
     devtool: nodeBuild ? 'source-map' : !isProd && 'cheap-module-source-map',
@@ -77,8 +79,18 @@ module.exports = function(env) {
       ],
     },
     resolve: {
-      extensions: ['.webpack-loader.js', '.web-loader.js', '.loader.js', '.js', '.jsx'],
-      modules: [path.resolve(__dirname, 'node_modules'), sourcePath],
+      extensions: [
+        '.webpack-loader.js',
+        '.web-loader.js',
+        '.loader.js',
+        '.js',
+        '.jsx'
+      ],
+      modules: [
+        path.resolve(__dirname, 'node_modules'),
+        sourcePath,
+        packagesPath
+      ],
     },
 
     plugins: getPlugins(config),
