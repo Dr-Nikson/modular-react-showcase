@@ -72,15 +72,18 @@ const applyMiddlewareWithChains = (...middlewares: Middleware<*, *>[]) => {
       }
 
       dispatch = (action: Function | Object | ActionsChain) => {
+        // please notice - this method is executed before middlewares and store
+        // so, we need to return result of dispatchToMiddleware
+        let result: any = action
         try {
           dispatchesInProgress += 1
 
           if (!action.chain) {
-            dispatchToMiddleware(action)
+            result = dispatchToMiddleware(action)
           } else {
-            action.chain.map((subAction, idx) => {
+            result = action.chain.map((subAction, idx) => {
               dispatchToMiddleware(
-                typeof subAction === 'function'
+                typeof subAction === 'function' || !!subAction.then
                   ? subAction
                   : {
                     ...subAction,
@@ -95,7 +98,7 @@ const applyMiddlewareWithChains = (...middlewares: Middleware<*, *>[]) => {
         }
 
         notifyAfterDispatch()
-        return (action: any)
+        return (result: any)
       }
 
       store.subscribe(notifyAfterDispatch)

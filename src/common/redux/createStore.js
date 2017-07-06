@@ -7,6 +7,7 @@ import { routerMiddleware } from 'react-router-redux'
 
 import withReducersManagement from 'redux-async-bundles/withReducersManagement'
 import { applyMiddlewareWithChains, actionSanitizer } from 'redux-actions-chain'
+import promiseMiddleware from './promiseMiddleware'
 import defaultReducers from './defaultReducers'
 
 import type {
@@ -27,7 +28,11 @@ const isReduxDevToolsEnabled =
 const storeFactory = (config: StoreConfig<*, *>): ManageableStore<*, *> => {
   const { history, initialState = {}, initialReducers } = config
   // Build the middleware for intercepting and dispatching navigation actions
-  const middleware = [thunkMiddleware, routerMiddleware(history)]
+  const middleware = [
+    thunkMiddleware,
+    promiseMiddleware,
+    routerMiddleware(history),
+  ]
   // change StoreCreator signature to
   // (reducersMap, stateObject, enhancer?) => ManageableStore
   const finalCreateStore: ManageableStoreCreator<*, *> = compose(

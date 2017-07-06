@@ -10,6 +10,8 @@ import BundleProvider from 'react-async-bundles/BundleProvider'
 // $FlowFixMe
 import type { ReactClass } from 'react'
 import type { BundleStore } from 'react-async-bundles/types'
+import DataFetcher from 'refetch/DataFetcher'
+import getRoutes from 'common/routing/getRoutes'
 
 export const renderApp = (
   bundleStore: BundleStore,
@@ -22,7 +24,9 @@ export const renderApp = (
       <Provider store={store}>
         <ConnectedRouter history={history}>
           <BundleProvider store={bundleStore}>
-            <Component />
+            <DataFetcher routes={getRoutes()}>
+              <Component />
+            </DataFetcher>
           </BundleProvider>
         </ConnectedRouter>
       </Provider>

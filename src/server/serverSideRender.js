@@ -1,19 +1,22 @@
 // @flow
+import { compose } from 'ramda'
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
-import { StaticRouter } from 'react-router-dom'
-import { curry, compose, identity } from 'ramda'
-import { Either } from 'ramda-fantasy'
+import { matchPath, StaticRouter } from 'react-router-dom'
 import createMemoryHistory from 'history/createMemoryHistory'
 import { Provider } from 'react-redux'
+import handleReduxModule from 'redux-async-bundles/handleReduxModule'
+import extractReducers from 'redux-async-bundles/extractReducers'
+import { createLocationFromUrl } from 'refetch'
+import loadDataForUrl from 'refetch/loadDataForUrl'
 
-import Try from 'common/utils/Try'
 import App from 'client/App'
 import Template from './Template'
 import getRoutes from 'common/routing/getRoutes'
 import BundleProvider from 'react-async-bundles/BundleProvider'
 import loadBundlesForUrl from 'react-async-bundles/loadBundlesForUrl'
 import createStore from 'common/redux/createStore'
+import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
 
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
@@ -22,10 +25,6 @@ import type {
   BundleUrlLoaderConfig,
   ServerRenderContext,
 } from 'react-async-bundles/types'
-import { matchPath } from 'react-router-dom'
-import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
-import handleReduxModule from 'redux-async-bundles/handleReduxModule'
-import extractReducers from 'redux-async-bundles/extractReducers'
 
 type RenderResult = {
   status: number,
@@ -61,7 +60,6 @@ export const rendererFactory = (template: Template) => {
 
   return (req: $Request, res: $Response): void => {
     const routes = getRoutes()
-    const handleRenderErrors = Either.either(getEmptyPageAndLog, identity)
 
     const doServerRender = (initialBundles: BundleContext[]) => {
       const history = createMemoryHistory()
@@ -80,9 +78,15 @@ export const rendererFactory = (template: Template) => {
           </StaticRouter>
         </Provider>
       )
-      const html = ReactDOMServer.renderToString(serverSideApp)
-
-      return createRenderResult(context, html, store.getState())
+      return Promise.resolve()
+        .then(() =>
+          loadDataForUrl(store, routes, createLocationFromUrl(req.url))
+        )
+        .then(() => {
+          const html = ReactDOMServer.renderToString(serverSideApp)
+          return createRenderResult(context, html, store.getState())
+        })
+        .catch(getEmptyPageAndLog)
     }
 
     const loaderConfig: BundleUrlLoaderConfig = {
@@ -91,17 +95,12 @@ export const rendererFactory = (template: Template) => {
       matchPath,
     }
 
-    loadBundlesForUrl(
-      loaderConfig,
-      req.url
-    ).then((bundles: BundleContext[]) => {
-      const renderResult: RenderResult = handleRenderErrors(
-        Try(() => doServerRender(bundles))
-      )
-
-      renderResult.url
-        ? sendRedirect(res, renderResult.status, renderResult.url)
-        : sendSuccess(res, renderResult.status, renderResult.body)
-    })
+    loadBundlesForUrl(loaderConfig, req.url)
+      .then(doServerRender)
+      .then((renderResult: RenderResult) => {
+        return renderResult.url
+          ? sendRedirect(res, renderResult.status, renderResult.url)
+          : sendSuccess(res, renderResult.status, renderResult.body)
+      })
   }
 }

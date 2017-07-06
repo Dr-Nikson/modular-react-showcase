@@ -59,7 +59,10 @@ export const sayWord = (input?: string) => {
 export const someAsyncAction = () => {
   return (dispatch: Function) => {
     const p = new Promise(resolve =>
-      resolve(Math.random() >= 0.5 ? 'yep' : Promise.reject('nope'))
+      setTimeout(
+        () => resolve(Math.random() >= 0.5 ? 'yep' : Promise.reject('nope')),
+        1500
+      )
     )
 
     dispatch(sayWord(' GOP STOP '))
