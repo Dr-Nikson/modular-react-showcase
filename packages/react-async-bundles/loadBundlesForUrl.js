@@ -1,33 +1,19 @@
 // @flow
-import { curry } from 'ramda'
-import defaultHandleModule from 'react-async-bundles/defaultHandleModule'
-import loadAsyncBundle from 'react-async-bundles/loadAsyncBundle'
+import loadAsyncBundles from 'react-async-bundles/loadAsyncBundles'
+import handleBundleMeta from 'react-async-bundles/handleBundleMeta'
+import { identity } from 'ramda'
 
-import type {
-  AsyncRouteConfig,
-  BundleContext,
-  BundleUrlLoaderConfig,
-} from './types'
-
+import type { BundleContext, BundleStoreCreatorConfig } from './types'
 
 
 const loadBundlesForUrl = (
-  config: BundleUrlLoaderConfig,
+  config: BundleStoreCreatorConfig,
   url: string,
-): Promise<BundleContext[]> => {
-  const {
-    routes,
-    matchPath,
-    handleBundleModule = defaultHandleModule,
-  } = config
+): Promise<BundleContext>[] => {
+  const promises = loadAsyncBundles(config, url)
+    .map(handleBundleMeta(identity))
 
-  const finalLoadBundle = curry(loadAsyncBundle)(handleBundleModule)
-  const promises = routes
-    .filter(r => r.bundle && matchPath(url, r))
-    .map(r => ((r: any): AsyncRouteConfig))
-    .map(finalLoadBundle)
-
-  return Promise.all(promises)
+  return promises
 }
 
 export default loadBundlesForUrl

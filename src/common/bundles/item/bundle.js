@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import asyncBundle from 'react-async-bundles/asyncBundle'
+import { asyncBundle } from 'common/utils/bundle'
 
 import type { Element } from 'react'
 import type { BundleConfig } from 'react-async-bundles/types'

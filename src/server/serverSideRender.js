@@ -22,7 +22,7 @@ import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
 import type {
   BundleContext,
-  BundleUrlLoaderConfig,
+  BundleStoreCreatorConfig,
   ServerRenderContext,
 } from 'react-async-bundles/types'
 
@@ -60,13 +60,18 @@ export const rendererFactory = (template: Template) => {
 
   return (req: $Request, res: $Response): void => {
     const routes = getRoutes()
+    const bundleStoreConfig: BundleStoreCreatorConfig = {
+      routes,
+      handleBundleModule: handleReduxModule,
+      matchPath,
+    }
 
     const doServerRender = (initialBundles: BundleContext[]) => {
       const history = createMemoryHistory()
       const initialReducers = extractReducers(initialBundles)
       const store = createStore({ history, initialReducers })
       const createBundleStore = bundleStoreCreatorFactory(store)
-      const bundleStore = createBundleStore({ routes }, initialBundles)
+      const bundleStore = createBundleStore(bundleStoreConfig, initialBundles)
 
       const context: ServerRenderContext = {}
       const serverSideApp = (
@@ -86,17 +91,11 @@ export const rendererFactory = (template: Template) => {
           const html = ReactDOMServer.renderToString(serverSideApp)
           return createRenderResult(context, html, store.getState())
         })
-        .catch(getEmptyPageAndLog)
     }
 
-    const loaderConfig: BundleUrlLoaderConfig = {
-      routes,
-      handleBundleModule: handleReduxModule,
-      matchPath,
-    }
-
-    loadBundlesForUrl(loaderConfig, req.url)
+    Promise.all(loadBundlesForUrl(bundleStoreConfig, req.url))
       .then(doServerRender)
+      .catch(getEmptyPageAndLog)
       .then((renderResult: RenderResult) => {
         return renderResult.url
           ? sendRedirect(res, renderResult.status, renderResult.url)

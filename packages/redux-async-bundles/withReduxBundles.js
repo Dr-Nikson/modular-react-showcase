@@ -36,12 +36,17 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
         return bundleStore.load(name).then(loadReduxModule)
       }
 
+      const loadForUrl = (url: string): Promise<BundleContext>[] => {
+        return bundleStore.loadForUrl(url).map(p => p.then(loadReduxModule))
+      }
+
       // TODO: maybe we don't really need it:
       // reducers already loaded at this point (by inserting initial reducers)
       initialBundles.map(loadReduxModule)
       return {
         ...bundleStore,
         load,
+        loadForUrl,
       }
     }
   }

@@ -4,11 +4,15 @@ import { Either } from 'ramda-fantasy'
 import * as maybe from 'common/utils/maybe'
 import defaultHandleModule from './defaultHandleModule'
 import loadAsyncBundle from './loadAsyncBundle'
+import loadAsyncBundles from './loadAsyncBundles'
+import handleBundleMeta from './handleBundleMeta'
 
 import type { Maybe } from 'flow-static-land/lib/Maybe'
 import type {
   AsyncRouteConfig,
   BundleContext,
+  BundleMeta,
+  BundlesMap,
   BundleStore,
   BundleStoreCreatorConfig,
   CreateBundleStore,
@@ -17,18 +21,7 @@ import type {
 
 
 
-type BundleMeta = {
-  context?: BundleContext,
-  error?: any,
-}
-
-type BundlesMap = {
-  [string]: BundleMeta,
-}
-
-
 // TODO: unit tests for this
-
 
 const findAsyncRoute = (
   routes: RouteConfig[],
@@ -45,9 +38,9 @@ const findAsyncRoute = (
 const reduceToMap = (bundles: BundleContext[]): BundlesMap =>
   bundles
     .reduce(
-      (res: BundlesMap, context: BundleContext) => ({
+      (res: BundlesMap, context: BundleContext): BundlesMap => ({
         ...res,
-        [context.bundle.name]: { context }
+        [context.bundle.name]: { context, name: context.bundle.name }
       }),
       {}
     )
@@ -59,18 +52,12 @@ const createBundleStore: CreateBundleStore = (
   const { routes } = config
   const handleBundleModule = config.handleBundleModule || defaultHandleModule
   const bundles: BundlesMap = reduceToMap(initialBundles)
+  const finalHandleMeta = handleBundleMeta(
+    (meta: BundleMeta) => bundles[meta.name] = meta
+  )
 
-  const saveBundle = (
-    asyncRoute: AsyncRouteConfig
-  ): Promise<BundleContext> => loadAsyncBundle(handleBundleModule, asyncRoute)
-      .then((context: BundleContext) => {
-        bundles[asyncRoute.bundle.name] = { context }
-        return context
-      })
-      .catch(error => {
-        bundles[asyncRoute.bundle.name] = { error }
-        return Promise.reject(error)
-      })
+  const saveBundle = (asyncRoute: AsyncRouteConfig): Promise<BundleContext> =>
+    finalHandleMeta(loadAsyncBundle(handleBundleModule, asyncRoute))
 
   const load = (name: string): Promise<BundleContext> => {
     const bundleContext: Maybe<Promise<BundleContext>> = maybe.map(
@@ -85,6 +72,12 @@ const createBundleStore: CreateBundleStore = (
     )
   }
 
+  const loadForUrl = (url: string): Promise<BundleContext>[] => {
+    const promises = loadAsyncBundles(config, url).map(finalHandleMeta)
+
+    return promises
+  }
+
   // TODO: fix type
   const getBundle = (name: string): any => {
     const bundleMeta: ?BundleMeta = bundles[name]
@@ -96,6 +89,7 @@ const createBundleStore: CreateBundleStore = (
 
   return {
     load,
+    loadForUrl,
     getBundle,
   }
 }

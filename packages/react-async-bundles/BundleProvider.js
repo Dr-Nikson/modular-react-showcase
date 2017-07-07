@@ -7,12 +7,13 @@ import type { BundleContext, BundleStore } from './types'
 
 
 type BundleProviderProps = {
-  store: BundleStore,
   children: any,
+  store: BundleStore,
 }
 
 type BundleProviderChildrenContext = {
   loadBundleComponent: (name: string) => Promise<ReactClass<any>>,
+  loadBundles: (url: string) => Promise<BundleContext[]>,
   getBundleComponent: (name: string) => ReactClass<any>,
 }
 
@@ -28,6 +29,12 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
       .then((context: BundleContext) => context.component)
   }
 
+  loadBundles = (url: string): Promise<BundleContext[]> => {
+    const { store } = this.props
+
+    return Promise.all(store.loadForUrl(url))
+  }
+
   getBundleComponent = (bundleName: string): any => {
     const { store } = this.props
 
@@ -41,6 +48,7 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
   getChildContext(): BundleProviderChildrenContext {
     return {
       loadBundleComponent: this.loadBundleComponent,
+      loadBundles: this.loadBundles,
       getBundleComponent: this.getBundleComponent,
     }
   }
@@ -53,6 +61,7 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
 
 BundleProvider.childContextTypes = {
   loadBundleComponent: PropTypes.func.isRequired,
+  loadBundles: PropTypes.func.isRequired,
   getBundleComponent: PropTypes.func.isRequired,
 }
 

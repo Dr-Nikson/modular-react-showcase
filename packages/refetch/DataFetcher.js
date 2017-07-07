@@ -69,7 +69,6 @@ class DataFetcher extends Component<void, DataFetcherProps, DataFetcherState> {
     const { store } = this.context
     const { location } = routeProps
     console.log('loadAsyncData.beforeStateSelect')
-    debugger;
     const { loadedLocations } = stateSelector(store.getState())
     console.log('loadAsyncData.afterStateSelect')
     const locationAlreadyLoaded = (

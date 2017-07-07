@@ -6,6 +6,7 @@ import BundleError from 'common/routing/components/BundleError'
 
 // $FlowFixMe
 import type { ReactClass, Element } from 'react'
+import type { UrlSelector } from './types'
 
 type BundleState = {
   component: ReactClass<any> | null,
@@ -22,7 +23,7 @@ const renderBundleComponent = (BundleComponent, props) => (
 )
 const renderBundleLoading = () => <div>loading bundle...</div>
 
-const asyncBundle = (bundleName: string) => {
+const asyncBundle = (bundleName: string, urlSelector: UrlSelector) => {
   class Bundle extends PureComponent<void, any, BundleState> {
     mounted: boolean = false
     state = {
@@ -48,13 +49,15 @@ const asyncBundle = (bundleName: string) => {
 
     componentDidMount() {
       const { component } = this.state
-      const { loadBundleComponent } = this.context
+      const { loadBundles } = this.context
 
       this.mounted = true
 
       if (!component) {
-        loadBundleComponent(bundleName).then(
-          component => this.mounted && this.setState({ component }),
+        loadBundles(urlSelector(this.props, this.context)).then(
+          () => this.mounted && this.setState({
+            component: this.getComponent()
+          }),
           error => this.mounted && this.setState({ component: BundleError })
         )
       }
@@ -75,6 +78,7 @@ const asyncBundle = (bundleName: string) => {
 
   Bundle.contextTypes = {
     loadBundleComponent: PropTypes.func.isRequired,
+    loadBundles: PropTypes.func.isRequired,
     getBundleComponent: PropTypes.func.isRequired,
   }
 
