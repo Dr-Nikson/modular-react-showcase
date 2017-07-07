@@ -82,7 +82,7 @@ const applyMiddlewareWithChains = (...middlewares: Middleware<*, *>[]) => {
             result = dispatchToMiddleware(action)
           } else {
             result = action.chain.map((subAction, idx) => {
-              dispatchToMiddleware(
+              return dispatchToMiddleware(
                 typeof subAction === 'function' || !!subAction.then
                   ? subAction
                   : {
