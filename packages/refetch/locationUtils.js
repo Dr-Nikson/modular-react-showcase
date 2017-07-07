@@ -3,6 +3,9 @@ import urlUtils from 'url'
 
 import type { Location } from 'react-router-dom'
 
+
+export const serverRenderLocationKey = '@@serverRender'
+
 export const createLocationFromUrl = (url: string): Location => {
   const {
     pathname,
@@ -15,6 +18,7 @@ export const createLocationFromUrl = (url: string): Location => {
     pathname: pathname || '',
     search: search || '',
     hash: hash || '',
+    key: serverRenderLocationKey,
     ...rest,
   }
 }

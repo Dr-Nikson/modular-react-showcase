@@ -77,7 +77,7 @@ export const someAsyncAction = () => {
 export const runForYourLife = () => {
   return createChain('runForYourLife')
     .add(doGood())
-    .add(sayWord())
+    .add(sayWord('READY FOR ACYNS: '))
     .add(someAsyncAction())
 }
 

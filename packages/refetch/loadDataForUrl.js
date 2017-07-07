@@ -3,6 +3,7 @@
 import { groupBy, startsWith } from 'ramda'
 import { matchPath } from 'react-router-dom'
 import { getUrlFromLocation } from './locationUtils'
+import { dataLoaded } from './redux'
 
 import type { Store } from 'redux'
 import type { Location, Match } from 'react-router-dom'
@@ -85,7 +86,10 @@ const loadDataForUrl = (
 
   const promises = loadData(store, matched)
 
-  return Promise.all(promises)
+  return Promise.all(promises).then(data => {
+    store.dispatch(dataLoaded(location.key || ''))
+    return data
+  })
 }
 
 export default loadDataForUrl

@@ -1,15 +1,10 @@
 // @flow
 import type { Location, Match } from 'react-router-dom'
 import type { Store } from 'redux'
+import type { RefetchState } from './redux'
 
+export type { RefetchActions, RefetchState, RefetchActionTypes } from './redux'
 
-/*export type Location = {
-  key: string,
-  pathname: string,
-  search: string,
-  hash: string,
-  state: Object,
-}*/
 
 export type MatchedRouteProps = {
   match: Match,
@@ -40,4 +35,6 @@ export type MatchedRoute = {
   match: MatchedRouteProps,
   route: PreFetchableRouteConfig,
 }
+
+export type RefetchStateSelector = (state: Object) => RefetchState
 
