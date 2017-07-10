@@ -42,14 +42,15 @@ const bootstrapApp = (): Promise<RenderAppFunction> => {
   const routes = getRoutes()
 
   const loaderConfig: BundleStoreCreatorConfig = {
-    routes,
     handleBundleModule: handleReduxModule,
     matchPath,
   }
 
   return Promise.resolve()
     .then(() =>
-      muteFailedBundles(loadBundlesForUrl(loaderConfig, getUrl(history)))
+      muteFailedBundles(
+        loadBundlesForUrl(loaderConfig, routes, getUrl(history))
+      )
     )
     .then((initialBundles: BundleContext[]): Function => {
       console.info('Bundles are loaded!')
@@ -58,7 +59,11 @@ const bootstrapApp = (): Promise<RenderAppFunction> => {
       const initialReducers = extractReducers(initialBundles)
       const store = createStore({ history, initialReducers, initialState })
       const createBundleStore = bundleStoreCreatorFactory(store)
-      const bundleStore = createBundleStore(loaderConfig, initialBundles)
+      const bundleStore = createBundleStore(
+        loaderConfig,
+        routes,
+        initialBundles
+      )
 
       return (render(bundleStore, store, history): any)
     })

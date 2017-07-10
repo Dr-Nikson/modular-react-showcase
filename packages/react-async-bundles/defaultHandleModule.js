@@ -6,6 +6,7 @@ import type {
   HandleBundle,
 } from './types'
 
+const getEmptyRoutes = () => []
 
 const defaultHandleModule: HandleBundle = (
   route: AsyncRouteConfig,
@@ -13,6 +14,7 @@ const defaultHandleModule: HandleBundle = (
 ): BundleContext => ({
   ...route,
   component: bundleModule.default || bundleModule.component,
+  getRoutes: bundleModule.getRoutes || getEmptyRoutes
 })
 
 export default defaultHandleModule

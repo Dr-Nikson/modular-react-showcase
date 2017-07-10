@@ -7,6 +7,7 @@ import type {
   BundleStore,
   BundleStoreCreatorConfig,
   CreateBundleStore,
+  RouteConfig,
 } from 'react-async-bundles/types'
 import type { ManageableStore, ReduxBundle, ReduxBundleContext } from './types'
 
@@ -15,13 +16,18 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
   return (createBundleStore: CreateBundleStore) => {
     return (
       config: BundleStoreCreatorConfig,
+      initialRoutes: RouteConfig[],
       initialBundles: BundleContext[] = [],
     ): BundleStore => {
       const finalConfig = {
         ...config,
         handleBundleModule: handleReduxModule
       }
-      const bundleStore = createBundleStore(finalConfig, initialBundles)
+      const bundleStore = createBundleStore(
+        finalConfig,
+        initialRoutes,
+        initialBundles,
+      )
 
       const loadReduxModule = (context: BundleContext): BundleContext => {
         // Add reducer to ManageableStore
@@ -36,8 +42,10 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
         return bundleStore.load(name).then(loadReduxModule)
       }
 
-      const loadForUrl = (url: string): Promise<BundleContext>[] => {
-        return bundleStore.loadForUrl(url).map(p => p.then(loadReduxModule))
+      const loadForUrl = (url: string): Promise<BundleContext[]> => {
+        return bundleStore.loadForUrl(url).then(
+          (bundles: BundleContext[]) => bundles.map(loadReduxModule)
+        )
       }
 
       // TODO: maybe we don't really need it:

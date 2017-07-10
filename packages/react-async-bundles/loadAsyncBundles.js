@@ -7,15 +7,16 @@ import type {
   AsyncRouteConfig,
   BundleMeta,
   BundleStoreCreatorConfig,
+  RouteConfig,
 } from './types'
 
 
 const loadAsyncBundles = (
   config: BundleStoreCreatorConfig,
+  routes: RouteConfig[],
   url: string,
 ): Promise<BundleMeta>[] => {
   const {
-    routes,
     matchPath,
     handleBundleModule = defaultHandleModule,
   } = config

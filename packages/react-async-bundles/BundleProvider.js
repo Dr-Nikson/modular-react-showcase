@@ -32,7 +32,7 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
   loadBundles = (url: string): Promise<BundleContext[]> => {
     const { store } = this.props
 
-    return Promise.all(store.loadForUrl(url))
+    return store.loadForUrl(url)
   }
 
   getBundleComponent = (bundleName: string): any => {

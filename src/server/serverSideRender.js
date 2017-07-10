@@ -61,7 +61,6 @@ export const rendererFactory = (template: Template) => {
   return (req: $Request, res: $Response): void => {
     const routes = getRoutes()
     const bundleStoreConfig: BundleStoreCreatorConfig = {
-      routes,
       handleBundleModule: handleReduxModule,
       matchPath,
     }
@@ -71,7 +70,11 @@ export const rendererFactory = (template: Template) => {
       const initialReducers = extractReducers(initialBundles)
       const store = createStore({ history, initialReducers })
       const createBundleStore = bundleStoreCreatorFactory(store)
-      const bundleStore = createBundleStore(bundleStoreConfig, initialBundles)
+      const bundleStore = createBundleStore(
+        bundleStoreConfig,
+        routes,
+        initialBundles
+      )
 
       const context: ServerRenderContext = {}
       const serverSideApp = (
@@ -93,7 +96,7 @@ export const rendererFactory = (template: Template) => {
         })
     }
 
-    Promise.all(loadBundlesForUrl(bundleStoreConfig, req.url))
+    Promise.all(loadBundlesForUrl(bundleStoreConfig, routes, req.url))
       .then(doServerRender)
       .catch(getEmptyPageAndLog)
       .then((renderResult: RenderResult) => {
