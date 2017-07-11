@@ -1,14 +1,19 @@
 // @flow
 import { Either } from 'ramda-fantasy'
-// import * as maybe from 'flow-static-land/lib/Maybe'
-import * as maybe from 'common/utils/maybe'
-import defaultHandleModule from './defaultHandleModule'
-import loadAsyncBundle from './loadAsyncBundle'
+import { curry, flatten, values } from 'ramda'
+import createSubscribersStore from 'subscribers-store/createSubscribersStore'
 
-import type { Maybe } from 'flow-static-land/lib/Maybe'
+import loadAsyncBundle from './loadAsyncBundle'
+import loadAsyncBundles from './loadAsyncBundles'
+import rejectFailedBundles, { rejectFailedBundle } from './rejectFailedBundles'
+import defaultHandleModule from './defaultHandleModule'
+
+import type { SubscribersStore } from 'subscribers-store/types'
 import type {
   AsyncRouteConfig,
   BundleContext,
+  BundleMeta,
+  BundlesMap,
   BundleStore,
   BundleStoreCreatorConfig,
   CreateBundleStore,
@@ -17,75 +22,95 @@ import type {
 
 
 
-type BundleMeta = {
-  context?: BundleContext,
-  error?: any,
-}
-
-type BundlesMap = {
-  [string]: BundleMeta,
-}
-
-
 // TODO: unit tests for this
-
-
-const findAsyncRoute = (
-  routes: RouteConfig[],
-  name: string
-): Maybe<AsyncRouteConfig> => {
-  const route = routes
-    .filter((r: any) => !!r.bundle)
-    .map((r: any) => (r: AsyncRouteConfig))
-    .find(r => r.bundle.name === name)
-
-  return route ? maybe.of(route) : maybe.Nothing
-}
 
 const reduceToMap = (bundles: BundleContext[]): BundlesMap =>
   bundles
     .reduce(
-      (res: BundlesMap, context: BundleContext) => ({
+      (res: BundlesMap, context: BundleContext): BundlesMap => ({
         ...res,
-        [context.bundle.name]: { context }
+        [context.bundle.name]: { context, name: context.bundle.name }
       }),
       {}
     )
 
 const createBundleStore: CreateBundleStore = (
   config: BundleStoreCreatorConfig,
+  initialRoutes: RouteConfig[],
   initialBundles: BundleContext[] = [],
 ): BundleStore => {
-  const { routes } = config
-  const handleBundleModule = config.handleBundleModule || defaultHandleModule
   const bundles: BundlesMap = reduceToMap(initialBundles)
+  const subscribers: SubscribersStore = createSubscribersStore()
+  const handleMeta = (meta: BundleMeta) => bundles[meta.name] = meta
+  const handleBundleModule = config.handleBundleModule || defaultHandleModule
 
-  const saveBundle = (
-    asyncRoute: AsyncRouteConfig
-  ): Promise<BundleContext> => loadAsyncBundle(handleBundleModule, asyncRoute)
-      .then((context: BundleContext) => {
-        bundles[asyncRoute.bundle.name] = { context }
-        return context
-      })
-      .catch(error => {
-        bundles[asyncRoute.bundle.name] = { error }
-        return Promise.reject(error)
-      })
+  const mergeRoutes = (
+    routes: RouteConfig[],
+    contexts: BundleContext[]
+  ): RouteConfig[] => {
+    // TODO: how to fix this?! OMG, it's so annoying
+    const tmp: any[] = contexts
+      .map((c: BundleContext): RouteConfig[] => c.getRoutes())
 
-  const load = (name: string): Promise<BundleContext> => {
-    const bundleContext: Maybe<Promise<BundleContext>> = maybe.map(
-      saveBundle,
-      findAsyncRoute(routes, name)
-    )
-
-    return maybe.getOrElse(bundleContext, () =>
-      Promise.reject(
-        new Error(`[BundleStore] Config not found for bundle [${name}]`)
-      )
-    )
+    return [
+      ...routes,
+      ...flatten(tmp)
+    ]
   }
 
-  // TODO: fix type
+  const getLoadedContexts = (): BundleContext[] => {
+    return values(bundles)
+      .filter((meta: BundleMeta): boolean => !!meta.context)
+      .map((meta: any): BundleContext => meta.context)
+  }
+
+  const getRoutes = (): RouteConfig[] => {
+    return mergeRoutes(initialRoutes, getLoadedContexts())
+  }
+
+  const loadForRoutes = (
+    routes: RouteConfig[],
+    url: string
+  ): Promise<BundleContext[]> => {
+    return loadAsyncBundles(config, routes, url)
+      .then((bundlesMeta: BundleMeta[]) => bundlesMeta.map(handleMeta))
+      .then(rejectFailedBundles)
+      .then(bundles => Promise.all(bundles))
+      .then((bundles) => {
+        subscribers.notify()
+        return bundles
+      })
+  }
+
+  const loadForUrl = (url: string): Promise<BundleContext[]> => {
+    const routes: RouteConfig[] = getRoutes()
+    return loadForRoutes(routes, url)
+  }
+
+  const invalidate = (): Promise<BundleContext[]> => {
+    // TODO: SOMEHOW type is failed here
+    // $FlowFixMe
+    const finalLoadBundle: Function =
+      curry(loadAsyncBundle)(handleBundleModule)
+
+    const routes = getRoutes()
+    const promises: Promise<BundleContext>[] = routes
+      .filter((r: any) => !!r.bundle)
+      .map(r => ((r: any): AsyncRouteConfig))
+      .map(finalLoadBundle)
+      .map(
+        (bundleMeta: Promise<BundleMeta>) => bundleMeta
+          .then(handleMeta)
+          .then(rejectFailedBundle)
+      )
+
+    return Promise.all(promises).then(contexts => {
+      subscribers.notify()
+      return contexts
+    })
+  }
+
+  // TODO: fix type --> migrate to flow-static-land
   const getBundle = (name: string): any => {
     const bundleMeta: ?BundleMeta = bundles[name]
 
@@ -94,9 +119,14 @@ const createBundleStore: CreateBundleStore = (
       : Either.Right(bundleMeta && bundleMeta.context)
   }
 
+
   return {
-    load,
+    invalidate,
     getBundle,
+    getRoutes,
+    // load,
+    loadForUrl,
+    subscribe: subscribers.subscribe,
   }
 }
 

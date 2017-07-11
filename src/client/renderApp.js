@@ -5,7 +5,8 @@ import { ConnectedRouter } from 'react-router-redux'
 import { AppContainer } from 'react-hot-loader'
 import { Provider } from 'react-redux'
 
-import BundleProvider from 'react-async-bundles/BundleProvider'
+import { BundleProvider, DataFetcher } from 'common/utils/bundle'
+import getRoutes from 'common/routing/getRoutes'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
@@ -22,7 +23,9 @@ export const renderApp = (
       <Provider store={store}>
         <ConnectedRouter history={history}>
           <BundleProvider store={bundleStore}>
-            <Component />
+            <DataFetcher routes={getRoutes()}>
+              <Component />
+            </DataFetcher>
           </BundleProvider>
         </ConnectedRouter>
       </Provider>

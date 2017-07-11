@@ -7,14 +7,15 @@ import BundleError from 'common/routing/components/BundleError'
 // $FlowFixMe
 import type { ReactClass, Element } from 'react'
 
+
 type BundleState = {
   component: ReactClass<any> | null,
 }
 
 type BundleRouteContext = {
-  loadBundleComponent: (name: string) => Promise<ReactClass<any>>,
   // TODO fix types: it return either now
   getBundleComponent: (name: string) => any,
+  subscribeOnBundles: (cb: Function) => Function,
 }
 
 const renderBundleComponent = (BundleComponent, props) => (
@@ -24,7 +25,7 @@ const renderBundleLoading = () => <div>loading bundle...</div>
 
 const asyncBundle = (bundleName: string) => {
   class Bundle extends PureComponent<void, any, BundleState> {
-    mounted: boolean = false
+    unsubscribe: ?Function = null
     state = {
       component: null,
     }
@@ -46,22 +47,23 @@ const asyncBundle = (bundleName: string) => {
       )
     }
 
+    shouldComponentUpdate() {
+      return true
+    }
+
     componentDidMount() {
       const { component } = this.state
-      const { loadBundleComponent } = this.context
+      const { subscribeOnBundles } = this.context
 
-      this.mounted = true
-
-      if (!component) {
-        loadBundleComponent(bundleName).then(
-          component => this.mounted && this.setState({ component }),
-          error => this.mounted && this.setState({ component: BundleError })
-        )
-      }
+      this.unsubscribe = subscribeOnBundles(() => {
+        this.setState({
+          component: this.getComponent()
+        })
+      })
     }
 
     componentWillUnmount() {
-      this.mounted = false
+      this.unsubscribe && this.unsubscribe()
     }
 
     render() {
@@ -74,8 +76,8 @@ const asyncBundle = (bundleName: string) => {
   }
 
   Bundle.contextTypes = {
-    loadBundleComponent: PropTypes.func.isRequired,
     getBundleComponent: PropTypes.func.isRequired,
+    subscribeOnBundles: PropTypes.func.isRequired,
   }
 
   Bundle.displayName = `Bundle(${bundleName})`

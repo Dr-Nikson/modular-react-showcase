@@ -3,29 +3,51 @@ import React, { Component, PropTypes } from 'react'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
-import type { BundleContext, BundleStore } from './types'
+import type {
+  BundleContext,
+  BundleStore,
+  RouteConfig,
+  UrlSelector,
+} from './types'
 
 
 type BundleProviderProps = {
-  store: BundleStore,
   children: any,
+  store: BundleStore,
+  urlSelector: UrlSelector,
+  initializeOnMount: boolean,
 }
 
 type BundleProviderChildrenContext = {
-  loadBundleComponent: (name: string) => Promise<ReactClass<any>>,
+  loadBundles: () => Promise<BundleContext[]>,
   getBundleComponent: (name: string) => ReactClass<any>,
+  getBundleRoutes: () => RouteConfig[],
+  subscribeOnBundles: (cb: Function) => Function,
 }
 
 
 class BundleProvider extends Component<void, BundleProviderProps, void> {
   static childContextTypes: any
+  static defaultProps: any
+  previousUrl: string = ''
 
-  loadBundleComponent = (bundleName: string): Promise<ReactClass<any>> => {
-    const { store } = this.props
+  constructor(props: BundleProviderProps, context: any) {
+    super(props, context)
+    this.previousUrl = props.initializeOnMount
+      ? ''
+      : props.urlSelector(props, context)
+  }
+
+  loadBundles = (props: BundleProviderProps): Promise<BundleContext[]> => {
+    const { store, urlSelector } = props
+    const url = urlSelector(props, this.context)
 
     return store
-      .load(bundleName)
-      .then((context: BundleContext) => context.component)
+      .loadForUrl(url)
+      .then(r => {
+        this.previousUrl = url
+        return r
+      })
   }
 
   getBundleComponent = (bundleName: string): any => {
@@ -38,11 +60,45 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
       })
   }
 
+  getBundleRoutes = (): RouteConfig[] => {
+    return this.props.store.getRoutes()
+  }
+
+  subscribeOnBundles = (cb: Function): Function => {
+    return this.props.store.subscribe(cb)
+  }
+
   getChildContext(): BundleProviderChildrenContext {
     return {
-      loadBundleComponent: this.loadBundleComponent,
+      loadBundles: () => this.loadBundles(this.props),
       getBundleComponent: this.getBundleComponent,
+      getBundleRoutes: this.getBundleRoutes,
+      subscribeOnBundles: this.subscribeOnBundles,
     }
+  }
+
+  componentDidMount() {
+    if (this.props.initializeOnMount) {
+      this.loadBundles(this.props)
+        .catch(err => {
+          console.error('BundleProvider:onMountInitialization failed', err)
+        })
+    }
+  }
+
+  componentWillReceiveProps(nextProps: BundleProviderProps) {
+    const nextUrl = nextProps.urlSelector(nextProps, this.context)
+
+    if (this.previousUrl !== nextUrl) {
+      this.loadBundles(nextProps)
+        .catch(err => {
+          console.error('BundleProvider:onUrlChangeLoading failed', err)
+        })
+    }
+  }
+
+  componentWillUnmount() {
+    // this.mounted = false
   }
 
   render() {
@@ -52,8 +108,14 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
 }
 
 BundleProvider.childContextTypes = {
-  loadBundleComponent: PropTypes.func.isRequired,
+  loadBundles: PropTypes.func.isRequired,
   getBundleComponent: PropTypes.func.isRequired,
+  getBundleRoutes: PropTypes.func.isRequired,
+  subscribeOnBundles: PropTypes.func.isRequired,
+}
+
+BundleProvider.defaultProps = {
+  initializeOnMount: false,
 }
 
 export default BundleProvider

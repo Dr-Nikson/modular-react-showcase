@@ -1,31 +1,30 @@
 // @flow
+import { compose } from 'ramda'
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
-import { StaticRouter } from 'react-router-dom'
-import { curry, compose, identity } from 'ramda'
-import { Either } from 'ramda-fantasy'
+import { matchPath, StaticRouter } from 'react-router-dom'
 import createMemoryHistory from 'history/createMemoryHistory'
 import { Provider } from 'react-redux'
+import handleReduxModule from 'redux-async-bundles/handleReduxModule'
+import extractReducers from 'redux-async-bundles/extractReducers'
+import { createLocationFromUrl } from 'refetch'
+import loadDataForUrl from 'refetch/loadDataForUrl'
 
-import Try from 'common/utils/Try'
 import App from 'client/App'
 import Template from './Template'
 import getRoutes from 'common/routing/getRoutes'
-import BundleProvider from 'react-async-bundles/BundleProvider'
+import { BundleProvider } from 'common/utils/bundle'
 import loadBundlesForUrl from 'react-async-bundles/loadBundlesForUrl'
 import createStore from 'common/redux/createStore'
+import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
 
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
 import type {
   BundleContext,
-  BundleUrlLoaderConfig,
+  BundleStoreCreatorConfig,
   ServerRenderContext,
 } from 'react-async-bundles/types'
-import { matchPath } from 'react-router-dom'
-import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
-import handleReduxModule from 'redux-async-bundles/handleReduxModule'
-import extractReducers from 'redux-async-bundles/extractReducers'
 
 type RenderResult = {
   status: number,
@@ -61,14 +60,21 @@ export const rendererFactory = (template: Template) => {
 
   return (req: $Request, res: $Response): void => {
     const routes = getRoutes()
-    const handleRenderErrors = Either.either(getEmptyPageAndLog, identity)
+    const bundleStoreConfig: BundleStoreCreatorConfig = {
+      handleBundleModule: handleReduxModule,
+      matchPath,
+    }
 
     const doServerRender = (initialBundles: BundleContext[]) => {
       const history = createMemoryHistory()
       const initialReducers = extractReducers(initialBundles)
       const store = createStore({ history, initialReducers })
       const createBundleStore = bundleStoreCreatorFactory(store)
-      const bundleStore = createBundleStore({ routes }, initialBundles)
+      const bundleStore = createBundleStore(
+        bundleStoreConfig,
+        routes,
+        initialBundles
+      )
 
       const context: ServerRenderContext = {}
       const serverSideApp = (
@@ -80,28 +86,30 @@ export const rendererFactory = (template: Template) => {
           </StaticRouter>
         </Provider>
       )
-      const html = ReactDOMServer.renderToString(serverSideApp)
-
-      return createRenderResult(context, html, store.getState())
+      return Promise.resolve()
+        .then(() =>
+          loadDataForUrl(
+            store,
+            bundleStore.getRoutes(),
+            createLocationFromUrl(req.url)
+          )
+        )
+        .then(() => {
+          const html = ReactDOMServer.renderToString(serverSideApp)
+          return createRenderResult(context, html, store.getState())
+        })
     }
 
-    const loaderConfig: BundleUrlLoaderConfig = {
-      routes,
-      handleBundleModule: handleReduxModule,
-      matchPath,
-    }
-
-    loadBundlesForUrl(
-      loaderConfig,
-      req.url
-    ).then((bundles: BundleContext[]) => {
-      const renderResult: RenderResult = handleRenderErrors(
-        Try(() => doServerRender(bundles))
-      )
-
-      renderResult.url
-        ? sendRedirect(res, renderResult.status, renderResult.url)
-        : sendSuccess(res, renderResult.status, renderResult.body)
-    })
+    Promise.resolve()
+      .then(() => loadBundlesForUrl(bundleStoreConfig, routes, req.url))
+      // We need to load ALL the bundles, otherwise send 500 error
+      .then(bundles => Promise.all(bundles))
+      .then(doServerRender)
+      .catch(getEmptyPageAndLog)
+      .then((renderResult: RenderResult) => {
+        return renderResult.url
+          ? sendRedirect(res, renderResult.status, renderResult.url)
+          : sendSuccess(res, renderResult.status, renderResult.body)
+      })
   }
 }
