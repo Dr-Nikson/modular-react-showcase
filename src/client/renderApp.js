@@ -5,7 +5,7 @@ import { ConnectedRouter } from 'react-router-redux'
 import { AppContainer } from 'react-hot-loader'
 import { Provider } from 'react-redux'
 
-import BundleProvider from 'react-async-bundles/BundleProvider'
+import { BundleProvider } from 'common/utils/bundle'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'

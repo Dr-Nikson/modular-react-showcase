@@ -1,16 +1,12 @@
 // @flow
 import { Either } from 'ramda-fantasy'
-// import * as maybe from 'flow-static-land/lib/Maybe'
-import * as maybe from 'common/utils/maybe'
 import { flatten, values } from 'ramda'
-import defaultHandleModule from './defaultHandleModule'
-import loadAsyncBundle from './loadAsyncBundle'
+import createSubscribersStore from 'subscribers-store/createSubscribersStore'
 import loadAsyncBundles from './loadAsyncBundles'
-import handleBundleMeta from './handleBundleMeta'
+import rejectFailedBundles from './rejectFailedBundles'
 
-import type { Maybe } from 'flow-static-land/lib/Maybe'
+import type { SubscribersStore } from 'subscribers-store/types'
 import type {
-  AsyncRouteConfig,
   BundleContext,
   BundleMeta,
   BundlesMap,
@@ -23,18 +19,6 @@ import type {
 
 
 // TODO: unit tests for this
-
-const findAsyncRoute = (
-  routes: RouteConfig[],
-  name: string
-): Maybe<AsyncRouteConfig> => {
-  const route = routes
-    .filter((r: any) => !!r.bundle)
-    .map((r: any) => (r: AsyncRouteConfig))
-    .find(r => r.bundle.name === name)
-
-  return route ? maybe.of(route) : maybe.Nothing
-}
 
 const reduceToMap = (bundles: BundleContext[]): BundlesMap =>
   bundles
@@ -51,11 +35,9 @@ const createBundleStore: CreateBundleStore = (
   initialRoutes: RouteConfig[],
   initialBundles: BundleContext[] = [],
 ): BundleStore => {
-  const handleBundleModule = config.handleBundleModule || defaultHandleModule
   const bundles: BundlesMap = reduceToMap(initialBundles)
-  const finalHandleMeta = handleBundleMeta(
-    (meta: BundleMeta) => bundles[meta.name] = meta
-  )
+  const subscribers: SubscribersStore = createSubscribersStore()
+  const handleMeta = (meta: BundleMeta) => bundles[meta.name] = meta
 
   const mergeRoutes = (
     routes: RouteConfig[],
@@ -77,54 +59,24 @@ const createBundleStore: CreateBundleStore = (
       .map((meta: any): BundleContext => meta.context)
   }
 
-  const saveBundle = (asyncRoute: AsyncRouteConfig): Promise<BundleContext> =>
-    finalHandleMeta(loadAsyncBundle(handleBundleModule, asyncRoute))
-
-  const load = (name: string): Promise<BundleContext> => {
-    const bundleContext: Maybe<Promise<BundleContext>> = maybe.map(
-      saveBundle,
-      findAsyncRoute(initialRoutes, name)
-    )
-
-    return maybe.getOrElse(bundleContext, () =>
-      Promise.reject(
-        new Error(`[BundleStore] Config not found for bundle [${name}]`)
-      )
-    )
-  }
-
-  const loadForRoutes = (
-    routes: RouteConfig[],
-    url: string
-  ): Promise<BundleContext[]> => {
-    const loadSubBundles = (p: Promise<BundleContext>) => p.then(
-      (context: BundleContext) => {
-        return context.getRoutes().length > 0
-          ? loadForRoutes(context.getRoutes(), url).then(
-            subContexts => [...subContexts, context]
-          )
-          : context
-      }
-    )
-
-    const promises = loadAsyncBundles(config, routes, url)
-      .map(finalHandleMeta)
-      .map(loadSubBundles)
-
-    return Promise.all(promises).then(flatten)
+  const getRoutes = (): RouteConfig[] => {
+    return mergeRoutes(initialRoutes, getLoadedContexts())
   }
 
   const loadForUrl = (url: string): Promise<BundleContext[]> => {
-    const routes: RouteConfig[] = mergeRoutes(
-      initialRoutes,
-      getLoadedContexts()
-    )
-    const promises = loadForRoutes(routes, url)
+    const routes: RouteConfig[] = getRoutes()
 
-    return promises
+    return loadAsyncBundles(config, routes, url)
+      .then((bundlesMeta: BundleMeta[]) => bundlesMeta.map(handleMeta))
+      .then(rejectFailedBundles)
+      .then(bundles => Promise.all(bundles))
+      .then((bundles) => {
+        subscribers.notify()
+        return bundles
+      })
   }
 
-  // TODO: fix type
+  // TODO: fix type --> migrate to flow-static-land
   const getBundle = (name: string): any => {
     const bundleMeta: ?BundleMeta = bundles[name]
 
@@ -133,10 +85,13 @@ const createBundleStore: CreateBundleStore = (
       : Either.Right(bundleMeta && bundleMeta.context)
   }
 
+
   return {
-    load,
+    // load,
     loadForUrl,
     getBundle,
+    getRoutes,
+    subscribe: subscribers.subscribe,
   }
 }
 

@@ -35,9 +35,10 @@ export type ServerRenderContext = {
 }
 
 export type BundleStore = {
-  load: (name: string) => Promise<BundleContext>,
   loadForUrl: (url: string) => Promise<BundleContext[]>,
   getBundle: (name: string) => any, // TODO: fix type
+  getRoutes: () => RouteConfig[],
+  subscribe: (cb: Function) => Function,
 }
 
 export type HandleBundle = (

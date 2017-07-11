@@ -1,7 +1,6 @@
 // @flow
-import loadAsyncBundles from 'react-async-bundles/loadAsyncBundles'
-import handleBundleMeta from 'react-async-bundles/handleBundleMeta'
-import { identity } from 'ramda'
+import loadAsyncBundles from './loadAsyncBundles'
+import rejectFailedBundles from './rejectFailedBundles'
 
 import type {
   BundleContext,
@@ -14,9 +13,9 @@ const loadBundlesForUrl = (
   config: BundleStoreCreatorConfig,
   routes: RouteConfig[],
   url: string,
-): Promise<BundleContext>[] => {
+): Promise<Promise<BundleContext>[]> => {
   const promises = loadAsyncBundles(config, routes, url)
-    .map(handleBundleMeta(identity))
+    .then(rejectFailedBundles)
 
   return promises
 }

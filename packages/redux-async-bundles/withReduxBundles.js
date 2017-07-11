@@ -38,9 +38,6 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
         return context
       }
 
-      const load = (name: string): Promise<BundleContext> => {
-        return bundleStore.load(name).then(loadReduxModule)
-      }
 
       const loadForUrl = (url: string): Promise<BundleContext[]> => {
         return bundleStore.loadForUrl(url).then(
@@ -53,7 +50,6 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
       initialBundles.map(loadReduxModule)
       return {
         ...bundleStore,
-        load,
         loadForUrl,
       }
     }

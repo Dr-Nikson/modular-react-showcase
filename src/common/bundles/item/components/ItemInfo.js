@@ -16,7 +16,7 @@ const ItemInfo = () => (
     <br />
     FUCK YEAH
     <br />
-    <Link to="/item/p">Pupper sub bub</Link>
+    <Link to="/item/p">Pupper sub bub boooooooooooob</Link>
     <br />
     IM SO HAPPPY SO SO SO SO SO <b>MUCH</b>
     <h3>GOD BLESS ME</h3>

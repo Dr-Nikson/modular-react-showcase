@@ -13,7 +13,7 @@ import loadDataForUrl from 'refetch/loadDataForUrl'
 import App from 'client/App'
 import Template from './Template'
 import getRoutes from 'common/routing/getRoutes'
-import BundleProvider from 'react-async-bundles/BundleProvider'
+import { BundleProvider } from 'common/utils/bundle'
 import loadBundlesForUrl from 'react-async-bundles/loadBundlesForUrl'
 import createStore from 'common/redux/createStore'
 import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
@@ -96,7 +96,10 @@ export const rendererFactory = (template: Template) => {
         })
     }
 
-    Promise.all(loadBundlesForUrl(bundleStoreConfig, routes, req.url))
+    Promise.resolve()
+      .then(() => loadBundlesForUrl(bundleStoreConfig, routes, req.url))
+      // We need to load ALL the bundles, otherwise send 500 error
+      .then(bundles => Promise.all(bundles))
       .then(doServerRender)
       .catch(getEmptyPageAndLog)
       .then((renderResult: RenderResult) => {

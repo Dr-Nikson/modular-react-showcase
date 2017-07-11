@@ -6,16 +6,16 @@ import BundleError from 'common/routing/components/BundleError'
 
 // $FlowFixMe
 import type { ReactClass, Element } from 'react'
-import type { UrlSelector } from './types'
+
 
 type BundleState = {
   component: ReactClass<any> | null,
 }
 
 type BundleRouteContext = {
-  loadBundleComponent: (name: string) => Promise<ReactClass<any>>,
   // TODO fix types: it return either now
   getBundleComponent: (name: string) => any,
+  subscribeOnBundles: (cb: Function) => Function,
 }
 
 const renderBundleComponent = (BundleComponent, props) => (
@@ -23,9 +23,9 @@ const renderBundleComponent = (BundleComponent, props) => (
 )
 const renderBundleLoading = () => <div>loading bundle...</div>
 
-const asyncBundle = (bundleName: string, urlSelector: UrlSelector) => {
+const asyncBundle = (bundleName: string) => {
   class Bundle extends PureComponent<void, any, BundleState> {
-    mounted: boolean = false
+    unsubscribe: ?Function = null
     state = {
       component: null,
     }
@@ -49,22 +49,17 @@ const asyncBundle = (bundleName: string, urlSelector: UrlSelector) => {
 
     componentDidMount() {
       const { component } = this.state
-      const { loadBundles } = this.context
+      const { subscribeOnBundles } = this.context
 
-      this.mounted = true
-
-      if (!component) {
-        loadBundles(urlSelector(this.props, this.context)).then(
-          () => this.mounted && this.setState({
-            component: this.getComponent()
-          }),
-          error => this.mounted && this.setState({ component: BundleError })
-        )
-      }
+      this.unsubscribe = subscribeOnBundles(() => {
+        this.setState({
+          component: this.getComponent()
+        })
+      })
     }
 
     componentWillUnmount() {
-      this.mounted = false
+      this.unsubscribe && this.unsubscribe()
     }
 
     render() {
@@ -77,9 +72,8 @@ const asyncBundle = (bundleName: string, urlSelector: UrlSelector) => {
   }
 
   Bundle.contextTypes = {
-    loadBundleComponent: PropTypes.func.isRequired,
-    loadBundles: PropTypes.func.isRequired,
     getBundleComponent: PropTypes.func.isRequired,
+    subscribeOnBundles: PropTypes.func.isRequired,
   }
 
   Bundle.displayName = `Bundle(${bundleName})`

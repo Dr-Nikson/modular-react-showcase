@@ -1,5 +1,5 @@
 // @flow
-import { asyncBundle } from 'common/utils/bundle'
+import asyncBundle from 'react-async-bundles/asyncBundle'
 import type { BundleConfig } from 'react-async-bundles/types'
 
 const name: string = 'pupper-bundle'

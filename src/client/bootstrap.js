@@ -46,27 +46,28 @@ const bootstrapApp = (): Promise<RenderAppFunction> => {
     matchPath,
   }
 
-  return Promise.resolve()
-    .then(() =>
-      muteFailedBundles(
-        loadBundlesForUrl(loaderConfig, routes, getUrl(history))
-      )
-    )
-    .then((initialBundles: BundleContext[]): Function => {
-      console.info('Bundles are loaded!')
+  return (
+    Promise.resolve()
+      .then(() => loadBundlesForUrl(loaderConfig, routes, getUrl(history)))
+      // For opposite to SSR we need to render the app even if some of the
+      // bundles aren't successfully loaded (at least we can show error message)
+      .then(muteFailedBundles)
+      .then((initialBundles: BundleContext[]): Function => {
+        console.info('Bundles are loaded!')
 
-      const render: Function = curry(renderApp)
-      const initialReducers = extractReducers(initialBundles)
-      const store = createStore({ history, initialReducers, initialState })
-      const createBundleStore = bundleStoreCreatorFactory(store)
-      const bundleStore = createBundleStore(
-        loaderConfig,
-        routes,
-        initialBundles
-      )
+        const render: Function = curry(renderApp)
+        const initialReducers = extractReducers(initialBundles)
+        const store = createStore({ history, initialReducers, initialState })
+        const createBundleStore = bundleStoreCreatorFactory(store)
+        const bundleStore = createBundleStore(
+          loaderConfig,
+          routes,
+          initialBundles
+        )
 
-      return (render(bundleStore, store, history): any)
-    })
+        return (render(bundleStore, store, history): any)
+      })
+  )
 }
 
 export default bootstrapApp
