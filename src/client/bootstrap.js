@@ -6,6 +6,7 @@ import { curry } from 'ramda'
 import getRoutes from 'common/routing/getRoutes'
 import createStore from 'common/redux/createStore'
 import { renderApp } from './renderApp'
+import App from 'client/App'
 import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
 import loadBundlesForUrl from 'react-async-bundles/loadBundlesForUrl'
 import handleReduxModule from 'redux-async-bundles/handleReduxModule'
@@ -18,6 +19,7 @@ import type {
   BundleContext,
   BundleStoreCreatorConfig,
 } from 'react-async-bundles/types'
+import hotReloadHook from 'client/hotReloadHook'
 
 type RenderAppFunction = (component: ReactClass<any>) => void
 
@@ -65,7 +67,12 @@ const bootstrapApp = (): Promise<RenderAppFunction> => {
           initialBundles
         )
 
-        return (render(bundleStore, store, history): any)
+        const renderer = () => (render(bundleStore, store, history, App): any)
+
+        hotReloadHook(module, bundleStore.invalidate)
+        bundleStore.subscribe(() => renderer())
+
+        return renderer
       })
   )
 }

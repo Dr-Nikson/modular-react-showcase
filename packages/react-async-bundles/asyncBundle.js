@@ -47,6 +47,10 @@ const asyncBundle = (bundleName: string) => {
       )
     }
 
+    shouldComponentUpdate() {
+      return true
+    }
+
     componentDidMount() {
       const { component } = this.state
       const { subscribeOnBundles } = this.context

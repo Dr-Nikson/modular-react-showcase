@@ -55,6 +55,18 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
           })
       }
 
+      const invalidate = (): Promise<BundleContext[]> => {
+        isLoading = true
+        return bundleStore
+          .invalidate()
+          .then((bundles: BundleContext[]) => bundles.map(loadReduxModule))
+          .then((bundles) => {
+            isLoading = false
+            realStoreSubscription()
+            return bundles
+          })
+      }
+
       const realStoreSubscription = () => {
         return !isLoading && subscribers.notify()
       }
@@ -65,6 +77,7 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
       initialBundles.map(loadReduxModule)
       return {
         ...bundleStore,
+        invalidate,
         loadForUrl,
         subscribe: subscribers.subscribe
       }

@@ -1,12 +1,16 @@
 // @flow
 import { Either } from 'ramda-fantasy'
-import { flatten, values } from 'ramda'
+import { curry, flatten, values } from 'ramda'
 import createSubscribersStore from 'subscribers-store/createSubscribersStore'
+
+import loadAsyncBundle from './loadAsyncBundle'
 import loadAsyncBundles from './loadAsyncBundles'
-import rejectFailedBundles from './rejectFailedBundles'
+import rejectFailedBundles, { rejectFailedBundle } from './rejectFailedBundles'
+import defaultHandleModule from './defaultHandleModule'
 
 import type { SubscribersStore } from 'subscribers-store/types'
 import type {
+  AsyncRouteConfig,
   BundleContext,
   BundleMeta,
   BundlesMap,
@@ -38,6 +42,7 @@ const createBundleStore: CreateBundleStore = (
   const bundles: BundlesMap = reduceToMap(initialBundles)
   const subscribers: SubscribersStore = createSubscribersStore()
   const handleMeta = (meta: BundleMeta) => bundles[meta.name] = meta
+  const handleBundleModule = config.handleBundleModule || defaultHandleModule
 
   const mergeRoutes = (
     routes: RouteConfig[],
@@ -63,9 +68,10 @@ const createBundleStore: CreateBundleStore = (
     return mergeRoutes(initialRoutes, getLoadedContexts())
   }
 
-  const loadForUrl = (url: string): Promise<BundleContext[]> => {
-    const routes: RouteConfig[] = getRoutes()
-
+  const loadForRoutes = (
+    routes: RouteConfig[],
+    url: string
+  ): Promise<BundleContext[]> => {
     return loadAsyncBundles(config, routes, url)
       .then((bundlesMeta: BundleMeta[]) => bundlesMeta.map(handleMeta))
       .then(rejectFailedBundles)
@@ -74,6 +80,34 @@ const createBundleStore: CreateBundleStore = (
         subscribers.notify()
         return bundles
       })
+  }
+
+  const loadForUrl = (url: string): Promise<BundleContext[]> => {
+    const routes: RouteConfig[] = getRoutes()
+    return loadForRoutes(routes, url)
+  }
+
+  const invalidate = (): Promise<BundleContext[]> => {
+    // TODO: SOMEHOW type is failed here
+    // $FlowFixMe
+    const finalLoadBundle: Function =
+      curry(loadAsyncBundle)(handleBundleModule)
+
+    const routes = getRoutes()
+    const promises: Promise<BundleContext>[] = routes
+      .filter((r: any) => !!r.bundle)
+      .map(r => ((r: any): AsyncRouteConfig))
+      .map(finalLoadBundle)
+      .map(
+        (bundleMeta: Promise<BundleMeta>) => bundleMeta
+          .then(handleMeta)
+          .then(rejectFailedBundle)
+      )
+
+    return Promise.all(promises).then(contexts => {
+      subscribers.notify()
+      return contexts
+    })
   }
 
   // TODO: fix type --> migrate to flow-static-land
@@ -87,10 +121,11 @@ const createBundleStore: CreateBundleStore = (
 
 
   return {
-    // load,
-    loadForUrl,
+    invalidate,
     getBundle,
     getRoutes,
+    // load,
+    loadForUrl,
     subscribe: subscribers.subscribe,
   }
 }

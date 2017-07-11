@@ -36,8 +36,9 @@ const loadAsyncBundles = (
     })
   }
 
-
-  const finalLoadBundle = curry(loadAsyncBundle)(handleBundleModule)
+  // TODO: SOMEHOW type is failed here
+  // $FlowFixMe
+  const finalLoadBundle: Function = curry(loadAsyncBundle)(handleBundleModule)
   const promises: Promise<BundleMeta[]>[] = routes
     .filter(r => r.bundle && matchPath(url, r))
     .map(r => ((r: any): AsyncRouteConfig))
