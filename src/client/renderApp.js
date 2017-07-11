@@ -5,13 +5,12 @@ import { ConnectedRouter } from 'react-router-redux'
 import { AppContainer } from 'react-hot-loader'
 import { Provider } from 'react-redux'
 
-import { BundleProvider } from 'common/utils/bundle'
+import { BundleProvider, DataFetcher } from 'common/utils/bundle'
+import getRoutes from 'common/routing/getRoutes'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
 import type { BundleStore } from 'react-async-bundles/types'
-import DataFetcher from 'refetch/DataFetcher'
-import getRoutes from 'common/routing/getRoutes'
 
 export const renderApp = (
   bundleStore: BundleStore,

@@ -88,7 +88,11 @@ export const rendererFactory = (template: Template) => {
       )
       return Promise.resolve()
         .then(() =>
-          loadDataForUrl(store, routes, createLocationFromUrl(req.url))
+          loadDataForUrl(
+            store,
+            bundleStore.getRoutes(),
+            createLocationFromUrl(req.url)
+          )
         )
         .then(() => {
           const html = ReactDOMServer.renderToString(serverSideApp)

@@ -97,11 +97,13 @@ class DataFetcher extends Component<void, DataFetcherProps, DataFetcherState> {
 
   componentWillReceiveProps(nextProps: DataFetcherProps) {
     const { location: { key: nextKey } } = nextProps.routeProps
+    const { routes: nextRoutes } = nextProps
     const { location: { key } } = this.props.routeProps
+    const { routes } = this.props
     console.log('componentWillReceiveProps')
     // note: state.lastLoadedKey shows last SUCCESSFULLY loaded location
     // as props.routeProps.location.key shows last rendered location
-    if (key !== nextKey) {
+    if (key !== nextKey || routes !== nextRoutes) {
       console.log('componentWillReceiveProps.insideIf')
       this.loadAsyncData(nextProps)
     }

@@ -3,7 +3,12 @@ import React, { Component, PropTypes } from 'react'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
-import type { BundleContext, BundleStore, UrlSelector } from './types'
+import type {
+  BundleContext,
+  BundleStore,
+  RouteConfig,
+  UrlSelector,
+} from './types'
 
 
 type BundleProviderProps = {
@@ -16,6 +21,7 @@ type BundleProviderProps = {
 type BundleProviderChildrenContext = {
   loadBundles: () => Promise<BundleContext[]>,
   getBundleComponent: (name: string) => ReactClass<any>,
+  getBundleRoutes: () => RouteConfig[],
   subscribeOnBundles: (cb: Function) => Function,
 }
 
@@ -54,6 +60,10 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
       })
   }
 
+  getBundleRoutes = (): RouteConfig[] => {
+    return this.props.store.getRoutes()
+  }
+
   subscribeOnBundles = (cb: Function): Function => {
     return this.props.store.subscribe(cb)
   }
@@ -62,15 +72,17 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
     return {
       loadBundles: () => this.loadBundles(this.props),
       getBundleComponent: this.getBundleComponent,
+      getBundleRoutes: this.getBundleRoutes,
       subscribeOnBundles: this.subscribeOnBundles,
     }
   }
 
   componentDidMount() {
     if (this.props.initializeOnMount) {
-      this.loadBundles(this.props).catch(err => {
-        console.error('BundleProvider:onMountInitialization failed', err)
-      })
+      this.loadBundles(this.props)
+        .catch(err => {
+          console.error('BundleProvider:onMountInitialization failed', err)
+        })
     }
   }
 
@@ -78,9 +90,10 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
     const nextUrl = nextProps.urlSelector(nextProps, this.context)
 
     if (this.previousUrl !== nextUrl) {
-      this.loadBundles(nextProps).catch(err => {
-        console.error('BundleProvider:onUrlChangeLoading failed', err)
-      })
+      this.loadBundles(nextProps)
+        .catch(err => {
+          console.error('BundleProvider:onUrlChangeLoading failed', err)
+        })
     }
   }
 
@@ -97,6 +110,7 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
 BundleProvider.childContextTypes = {
   loadBundles: PropTypes.func.isRequired,
   getBundleComponent: PropTypes.func.isRequired,
+  getBundleRoutes: PropTypes.func.isRequired,
   subscribeOnBundles: PropTypes.func.isRequired,
 }
 
