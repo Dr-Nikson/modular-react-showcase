@@ -1,8 +1,4 @@
 // @flow
-import SuperComponent from './SuperComponent'
-import reduxBundle from './redux'
-import routes from './routes'
-
-export const component = SuperComponent
-export const redux = reduxBundle
-export const getRoutes = routes
+export { default as component } from './SuperComponent'
+export { default as redux } from './redux'
+export { default as getRoutes } from './routes'

@@ -1,22 +1,19 @@
 // @flow
 import loadAsyncBundles from './loadAsyncBundles'
-import rejectFailedBundles from './rejectFailedBundles'
 
 import type {
-  BundleContext,
+  BundleMeta,
   BundleStoreCreatorConfig,
   RouteConfig,
 } from './types'
 
-
+// TODO: we don't need it anymore?
 const loadBundlesForUrl = (
   config: BundleStoreCreatorConfig,
   routes: RouteConfig[],
   url: string,
-): Promise<Promise<BundleContext>[]> => {
+): Promise<BundleMeta[]> => {
   const promises = loadAsyncBundles(config, routes, url)
-    .then(rejectFailedBundles)
-
   return promises
 }
 

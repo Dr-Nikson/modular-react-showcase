@@ -7,6 +7,7 @@ import createMemoryHistory from 'history/createMemoryHistory'
 import { Provider } from 'react-redux'
 import handleReduxModule from 'redux-async-bundles/handleReduxModule'
 import extractReducers from 'redux-async-bundles/extractReducers'
+import rejectFailedBundles from 'react-async-bundles/rejectFailedBundles'
 import { createLocationFromUrl } from 'refetch'
 import loadDataForUrl from 'refetch/loadDataForUrl'
 
@@ -21,7 +22,7 @@ import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
 import type { $Request, $Response } from 'express'
 import type { CurriedFunction2 } from 'ramda'
 import type {
-  BundleContext,
+  BundleMeta,
   BundleStoreCreatorConfig,
   ServerRenderContext,
 } from 'react-async-bundles/types'
@@ -65,7 +66,7 @@ export const rendererFactory = (template: Template) => {
       matchPath,
     }
 
-    const doServerRender = (initialBundles: BundleContext[]) => {
+    const doServerRender = (initialBundles: BundleMeta[]) => {
       const history = createMemoryHistory()
       const initialReducers = extractReducers(initialBundles)
       const store = createStore({ history, initialReducers })
@@ -103,6 +104,7 @@ export const rendererFactory = (template: Template) => {
     Promise.resolve()
       .then(() => loadBundlesForUrl(bundleStoreConfig, routes, req.url))
       // We need to load ALL the bundles, otherwise send 500 error
+      .then(rejectFailedBundles)
       .then(bundles => Promise.all(bundles))
       .then(doServerRender)
       .catch(getEmptyPageAndLog)

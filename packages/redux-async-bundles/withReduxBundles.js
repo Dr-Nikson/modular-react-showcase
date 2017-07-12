@@ -5,6 +5,7 @@ import createSubscribersStore from 'subscribers-store/createSubscribersStore'
 
 import type {
   BundleContext,
+  BundleMeta,
   BundleStore,
   BundleStoreCreatorConfig,
   CreateBundleStore,
@@ -19,7 +20,7 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
     return (
       config: BundleStoreCreatorConfig,
       initialRoutes: RouteConfig[],
-      initialBundles: BundleContext[] = [],
+      initialBundles: BundleMeta[] = [],
     ): BundleStore => {
       const finalConfig = {
         ...config,
@@ -33,38 +34,48 @@ const withReduxBundles = (reduxStore: ManageableStore<*, *>) => {
         initialBundles,
       )
 
-      const loadReduxModule = (context: BundleContext): BundleContext => {
+
+      const notifyAfterLoading = (p: Promise<BundleMeta[]>) => p.then(
+        (metas: BundleMeta[]): BundleMeta[] => {
+          isLoading = false
+          subscribers.notify()
+          return metas
+        },
+        (error: any): any => {
+          isLoading = false
+          subscribers.notify()
+          return Promise.reject(error)
+        },
+      )
+
+      const loadReduxModule = (meta: BundleMeta): BundleMeta => {
+        const { context } = meta
         // Add reducer to ManageableStore
         maybe.map(
           (redux: ReduxBundle<*, *>) => reduxStore.addReducers(redux.reducer),
-          maybe.inj(((context: any): ReduxBundleContext<*, *>).redux)
+          maybe.inj(
+            context && ((context: any): ReduxBundleContext<*, *>).redux
+          )
         )
-        return context
+        return meta
       }
 
-
-      const loadForUrl = (url: string): Promise<BundleContext[]> => {
+      const loadForUrl = (url: string): Promise<BundleMeta[]> => {
         isLoading = true
-        return bundleStore
-          .loadForUrl(url)
-          .then((bundles: BundleContext[]) => bundles.map(loadReduxModule))
-          .then((bundles) => {
-            isLoading = false
-            realStoreSubscription()
-            return bundles
-          })
+        return notifyAfterLoading(
+          bundleStore
+            .loadForUrl(url)
+            .then((metas: BundleMeta[]) => metas.map(loadReduxModule))
+        )
       }
 
-      const invalidate = (): Promise<BundleContext[]> => {
+      const invalidate = (): Promise<BundleMeta[]> => {
         isLoading = true
-        return bundleStore
-          .invalidate()
-          .then((bundles: BundleContext[]) => bundles.map(loadReduxModule))
-          .then((bundles) => {
-            isLoading = false
-            realStoreSubscription()
-            return bundles
-          })
+        return notifyAfterLoading(
+          bundleStore
+            .invalidate()
+            .then((metas: BundleMeta[]) => metas.map(loadReduxModule))
+        )
       }
 
       const realStoreSubscription = () => {

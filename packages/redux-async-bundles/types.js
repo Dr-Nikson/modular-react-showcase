@@ -10,6 +10,7 @@ import type {
   BundleContext,
   BundleStore,
   BundleStoreCreatorConfig,
+  BundleMeta,
   BundleModule,
   RouteConfig,
 } from 'react-async-bundles/types'
@@ -51,5 +52,5 @@ export type ManageableStoreEnhancer<S, A> = (
 export type CreateReduxBundleStore = (
   config: BundleStoreCreatorConfig,
   initialRoutes: RouteConfig[],
-  initialBundles: BundleContext[],
+  initialBundles: BundleMeta[],
 ) => BundleStore

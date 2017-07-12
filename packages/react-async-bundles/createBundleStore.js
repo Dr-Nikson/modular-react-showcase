@@ -5,7 +5,6 @@ import createSubscribersStore from 'subscribers-store/createSubscribersStore'
 
 import loadAsyncBundle from './loadAsyncBundle'
 import loadAsyncBundles from './loadAsyncBundles'
-import rejectFailedBundles, { rejectFailedBundle } from './rejectFailedBundles'
 import defaultHandleModule from './defaultHandleModule'
 
 import type { SubscribersStore } from 'subscribers-store/types'
@@ -24,20 +23,18 @@ import type {
 
 // TODO: unit tests for this
 
-const reduceToMap = (bundles: BundleContext[]): BundlesMap =>
-  bundles
-    .reduce(
-      (res: BundlesMap, context: BundleContext): BundlesMap => ({
-        ...res,
-        [context.bundle.name]: { context, name: context.bundle.name }
-      }),
-      {}
-    )
+const reduceToMap = (bundles: BundleMeta[]): BundlesMap => bundles.reduce(
+  (res: BundlesMap, meta: BundleMeta): BundlesMap => ({
+    ...res,
+    [meta.name]: meta
+  }),
+  {}
+)
 
 const createBundleStore: CreateBundleStore = (
   config: BundleStoreCreatorConfig,
   initialRoutes: RouteConfig[],
-  initialBundles: BundleContext[] = [],
+  initialBundles: BundleMeta[] = [],
 ): BundleStore => {
   const bundles: BundlesMap = reduceToMap(initialBundles)
   const subscribers: SubscribersStore = createSubscribersStore()
@@ -58,6 +55,17 @@ const createBundleStore: CreateBundleStore = (
     ]
   }
 
+  const notifyAfterLoading = (p: Promise<BundleMeta[]>) => p.then(
+    (metas: BundleMeta[]): BundleMeta[] => {
+      subscribers.notify()
+      return metas
+    },
+    (error: any): any => {
+      subscribers.notify()
+      return Promise.reject(error)
+    }
+  )
+
   const getLoadedContexts = (): BundleContext[] => {
     return values(bundles)
       .filter((meta: BundleMeta): boolean => !!meta.context)
@@ -71,43 +79,34 @@ const createBundleStore: CreateBundleStore = (
   const loadForRoutes = (
     routes: RouteConfig[],
     url: string
-  ): Promise<BundleContext[]> => {
-    return loadAsyncBundles(config, routes, url)
-      .then((bundlesMeta: BundleMeta[]) => bundlesMeta.map(handleMeta))
-      .then(rejectFailedBundles)
-      .then(bundles => Promise.all(bundles))
-      .then((bundles) => {
-        subscribers.notify()
-        return bundles
-      })
+  ): Promise<BundleMeta[]> => {
+    return notifyAfterLoading(
+      loadAsyncBundles(config, routes, url)
+        .then((bundlesMeta: BundleMeta[]) => bundlesMeta.map(handleMeta))
+    )
   }
 
-  const loadForUrl = (url: string): Promise<BundleContext[]> => {
+  const loadForUrl = (url: string): Promise<BundleMeta[]> => {
     const routes: RouteConfig[] = getRoutes()
     return loadForRoutes(routes, url)
   }
 
-  const invalidate = (): Promise<BundleContext[]> => {
+  const invalidate = (): Promise<BundleMeta[]> => {
     // TODO: SOMEHOW type is failed here
     // $FlowFixMe
     const finalLoadBundle: Function =
       curry(loadAsyncBundle)(handleBundleModule)
+    // TODO: let's use Map instead of object... or not?
+    Object.keys(bundles).map(k => delete bundles[k])
 
     const routes = getRoutes()
-    const promises: Promise<BundleContext>[] = routes
+    const promises: Promise<BundleMeta>[] = routes
       .filter((r: any) => !!r.bundle)
       .map(r => ((r: any): AsyncRouteConfig))
       .map(finalLoadBundle)
-      .map(
-        (bundleMeta: Promise<BundleMeta>) => bundleMeta
-          .then(handleMeta)
-          .then(rejectFailedBundle)
-      )
+      .map((bundleMeta: Promise<BundleMeta>) => bundleMeta.then(handleMeta))
 
-    return Promise.all(promises).then(contexts => {
-      subscribers.notify()
-      return contexts
-    })
+    return notifyAfterLoading(Promise.all(promises))
   }
 
   // TODO: fix type --> migrate to flow-static-land

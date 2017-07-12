@@ -5,6 +5,7 @@ import React, { Component, PropTypes } from 'react'
 import type { ReactClass } from 'react'
 import type {
   BundleContext,
+  BundleMeta,
   BundleStore,
   RouteConfig,
   UrlSelector,
@@ -19,7 +20,7 @@ type BundleProviderProps = {
 }
 
 type BundleProviderChildrenContext = {
-  loadBundles: () => Promise<BundleContext[]>,
+  loadBundles: () => Promise<BundleMeta[]>,
   getBundleComponent: (name: string) => ReactClass<any>,
   getBundleRoutes: () => RouteConfig[],
   subscribeOnBundles: (cb: Function) => Function,
@@ -38,16 +39,13 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
       : props.urlSelector(props, context)
   }
 
-  loadBundles = (props: BundleProviderProps): Promise<BundleContext[]> => {
+  loadBundles = (props: BundleProviderProps): Promise<BundleMeta[]> => {
     const { store, urlSelector } = props
     const url = urlSelector(props, this.context)
 
+    this.previousUrl = url
     return store
       .loadForUrl(url)
-      .then(r => {
-        this.previousUrl = url
-        return r
-      })
   }
 
   getBundleComponent = (bundleName: string): any => {

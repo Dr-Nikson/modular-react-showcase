@@ -1,5 +1,5 @@
 // @flow
-import type { BundleContext } from 'react-async-bundles/types'
+import type { BundleMeta } from 'react-async-bundles/types'
 import type { ReducersMap, ReduxBundle, ReduxBundleContext } from './types'
 
 const concatReducers = (reducers, bundle: ReduxBundle<*, *>) => ({
@@ -7,9 +7,10 @@ const concatReducers = (reducers, bundle: ReduxBundle<*, *>) => ({
   ...bundle.reducer,
 })
 
-const extractReducers = (bundles: BundleContext[]): ReducersMap<*, *> => {
+const extractReducers = (bundles: BundleMeta[]): ReducersMap<*, *> => {
   return bundles
-    .filter((b: any) => b.redux)
+    .filter((b: any) => b.context && b.redux)
+    .map((b: any) =>  b.context)
     .map((context: any) => (context: ReduxBundleContext<*, *>).redux)
     .reduce(concatReducers, {})
 }

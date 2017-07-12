@@ -35,10 +35,10 @@ export type ServerRenderContext = {
 }
 
 export type BundleStore = {
-  invalidate: () => Promise<BundleContext[]>,
+  invalidate: () => Promise<BundleMeta[]>,
   getBundle: (name: string) => any, // TODO: fix type
   getRoutes: () => RouteConfig[],
-  loadForUrl: (url: string) => Promise<BundleContext[]>,
+  loadForUrl: (url: string) => Promise<BundleMeta[]>,
   subscribe: (cb: Function) => Function,
 }
 
@@ -54,18 +54,6 @@ export type BundleStoreCreatorConfig = {
   matchPath: MatchPath,
 }
 
-export type CreateBundleStore = (
-  config: BundleStoreCreatorConfig,
-  initialRoutes: RouteConfig[],
-  initialBundles: BundleContext[],
-) => BundleStore
-
-export type BundleModule = {
-  // default: any,
-  component?: ReactClass<any>,
-  getRoutes?: GetRoutes,
-}
-
 export type BundleMeta = {
   name: string,
   context?: BundleContext,
@@ -74,6 +62,17 @@ export type BundleMeta = {
 
 export type BundlesMap = {
   [string]: BundleMeta,
+}
+
+export type CreateBundleStore = (
+  config: BundleStoreCreatorConfig,
+  initialRoutes: RouteConfig[],
+  initialBundles: BundleMeta[],
+) => BundleStore
+
+export type BundleModule = {
+  component: ReactClass<any>,
+  getRoutes?: GetRoutes,
 }
 
 export type UrlSelector = (props: Object, context: Object) => string

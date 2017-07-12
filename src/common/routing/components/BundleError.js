@@ -3,12 +3,14 @@ import React from 'react'
 import Status from 'common/routing/components/Status'
 
 type BundleErrorProps = {
-  error: Object,
+  error?: Object,
 }
 
-const BundleError = (props: BundleErrorProps) => (
+const BundleError = ({ error }: BundleErrorProps) => (
   <Status code={500}>
-    <div>Bundle loading error: {props.error.toSting()}</div>
+    <div>
+      Bundle loading error: {error ? error.toSting() : '[no error descripion]'}
+    </div>
   </Status>
 )
 

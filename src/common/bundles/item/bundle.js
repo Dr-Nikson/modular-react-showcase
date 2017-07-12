@@ -6,14 +6,12 @@ import type { Element } from 'react'
 import type { BundleConfig } from 'react-async-bundles/types'
 
 const name: string = 'item-bundle'
-// prettier-ignore
-const load: Function = () => new Promise(resolve => setTimeout(resolve, 1500))
-  .then(() => import(/* webpackChunkName: "item-bundle" */ 'common/bundles/item/entry'))
-  .then(c => {
-    console.log('loading is done')
-    debugger;
-    return c
-  })
+
+const load: Function = () =>
+  // prettier-ignore
+  new Promise(resolve => setTimeout(resolve, 1500)).then(() =>
+    import(/* webpackChunkName: "item-bundle" */ 'common/bundles/item/entry'
+  ))
 
 export const bundle: BundleConfig = {
   name,

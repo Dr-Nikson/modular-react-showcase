@@ -1,19 +1,19 @@
 // @flow
-import type { BundleContext, BundleMeta } from './types'
+import type { BundleMeta } from './types'
+
 
 export const rejectFailedBundle = (
   meta: BundleMeta
-): Promise<BundleContext> => {
+): Promise<BundleMeta> => {
   return meta.context
-    ? Promise.resolve(meta.context)
+    ? Promise.resolve(meta)
     : Promise.reject(
       meta.error || 'Cannot load bundle... no context after bundle loaded'
     )
 }
 
 
-const rejectFailedBundles = (metas: BundleMeta[]) => metas.map(
-  rejectFailedBundle
-)
+const rejectFailedBundles = (metas: BundleMeta[]): Promise<BundleMeta>[] =>
+  metas.map(rejectFailedBundle)
 
 export default rejectFailedBundles

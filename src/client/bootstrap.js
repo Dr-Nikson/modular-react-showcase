@@ -17,6 +17,7 @@ import type { ReactClass } from 'react'
 import type { CurriedFunction2, CurriedFunction3 } from 'ramda'
 import type {
   BundleContext,
+  BundleMeta,
   BundleStoreCreatorConfig,
 } from 'react-async-bundles/types'
 import hotReloadHook from 'client/hotReloadHook'
@@ -26,16 +27,6 @@ type RenderAppFunction = (component: ReactClass<any>) => void
 const getUrl = (history: any) => {
   const location = history.location
   return location.pathname + location.search + location.hash
-}
-
-const muteFailedBundles = (
-  promises: Promise<BundleContext>[]
-): Promise<BundleContext[]> => {
-  return Promise.all(
-    promises.map(p => p.catch(console.error))
-  ).then((bundles: Array<?BundleContext>): BundleContext[] => {
-    return bundles.filter(b => !!b).map((b: any) => (b: BundleContext))
-  })
 }
 
 const bootstrapApp = (): Promise<RenderAppFunction> => {
@@ -53,8 +44,7 @@ const bootstrapApp = (): Promise<RenderAppFunction> => {
       .then(() => loadBundlesForUrl(loaderConfig, routes, getUrl(history)))
       // For opposite to SSR we need to render the app even if some of the
       // bundles aren't successfully loaded (at least we can show error message)
-      .then(muteFailedBundles)
-      .then((initialBundles: BundleContext[]): Function => {
+      .then((initialBundles: BundleMeta[]): Function => {
         console.info('Bundles are loaded!')
 
         const render: Function = curry(renderApp)
