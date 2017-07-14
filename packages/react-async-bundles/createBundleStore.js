@@ -1,11 +1,12 @@
 // @flow
 import { Either } from 'ramda-fantasy'
-import { curry, flatten, values } from 'ramda'
+import { curry, values } from 'ramda'
 import createSubscribersStore from 'subscribers-store/createSubscribersStore'
 
 import loadAsyncBundle from './loadAsyncBundle'
 import loadAsyncBundles from './loadAsyncBundles'
 import defaultHandleModule from './defaultHandleModule'
+import routesSelectorFactory from './routesSelectorFactory'
 
 import type { SubscribersStore } from 'subscribers-store/types'
 import type {
@@ -40,20 +41,8 @@ const createBundleStore: CreateBundleStore = (
   const subscribers: SubscribersStore = createSubscribersStore()
   const handleMeta = (meta: BundleMeta) => bundles[meta.name] = meta
   const handleBundleModule = config.handleBundleModule || defaultHandleModule
+  const selectRoutes = routesSelectorFactory()
 
-  const mergeRoutes = (
-    routes: RouteConfig[],
-    contexts: BundleContext[]
-  ): RouteConfig[] => {
-    // TODO: how to fix this?! OMG, it's so annoying
-    const tmp: any[] = contexts
-      .map((c: BundleContext): RouteConfig[] => c.getRoutes())
-
-    return [
-      ...routes,
-      ...flatten(tmp)
-    ]
-  }
 
   const notifyAfterLoading = (p: Promise<BundleMeta[]>) => p.then(
     (metas: BundleMeta[]): BundleMeta[] => {
@@ -73,7 +62,7 @@ const createBundleStore: CreateBundleStore = (
   }
 
   const getRoutes = (): RouteConfig[] => {
-    return mergeRoutes(initialRoutes, getLoadedContexts())
+    return selectRoutes(initialRoutes, getLoadedContexts())
   }
 
   const loadForRoutes = (
@@ -88,6 +77,9 @@ const createBundleStore: CreateBundleStore = (
 
   const loadForUrl = (url: string): Promise<BundleMeta[]> => {
     const routes: RouteConfig[] = getRoutes()
+      .filter((r: RouteConfig) => (
+        r.bundle && !(bundles[r.bundle.name] && bundles[r.bundle.name].context)
+      ))
     return loadForRoutes(routes, url)
   }
 

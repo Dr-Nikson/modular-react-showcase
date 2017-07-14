@@ -9,7 +9,7 @@ const concatReducers = (reducers, bundle: ReduxBundle<*, *>) => ({
 
 const extractReducers = (bundles: BundleMeta[]): ReducersMap<*, *> => {
   return bundles
-    .filter((b: any) => b.context && b.redux)
+    .filter((b: any) => b.context && b.context.redux)
     .map((b: any) =>  b.context)
     .map((context: any) => (context: ReduxBundleContext<*, *>).redux)
     .reduce(concatReducers, {})

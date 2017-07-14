@@ -2,18 +2,21 @@
 import type { BundleMeta } from './types'
 
 
-export const rejectFailedBundle = (
-  meta: BundleMeta
-): Promise<BundleMeta> => {
-  return meta.context
-    ? Promise.resolve(meta)
-    : Promise.reject(
-      meta.error || 'Cannot load bundle... no context after bundle loaded'
-    )
+const extractErrors = (failedMetas: BundleMeta[]): any[] => {
+  return failedMetas.map(meta =>
+    meta.error || 'Cannot load bundle... no context after bundle loaded'
+  )
 }
 
 
-const rejectFailedBundles = (metas: BundleMeta[]): Promise<BundleMeta>[] =>
-  metas.map(rejectFailedBundle)
+const rejectFailedBundles = (metas: BundleMeta[]): Promise<BundleMeta[]> => {
+  const failedBundles = metas.filter(
+    (meta: BundleMeta): boolean => !!meta.error
+  )
+
+  return failedBundles.length > 0
+    ? Promise.reject(extractErrors(failedBundles))
+    : Promise.resolve(metas)
+}
 
 export default rejectFailedBundles

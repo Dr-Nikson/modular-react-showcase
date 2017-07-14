@@ -16,7 +16,7 @@ const fetchDetailsData = (store, match) => {
 const getRoutes: GetRoutes = () => [
   { path: '/item', fetchData: fetchItemsData, fetchBlocking: true },
   { path: '/item/details', fetchData: fetchDetailsData },
-  { path: '/item/p', bundle: pupperSubBundle },
+  { path: '/item/pupper', bundle: pupperSubBundle },
 ]
 
 export default getRoutes

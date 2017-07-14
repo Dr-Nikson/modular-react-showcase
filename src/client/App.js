@@ -20,6 +20,7 @@ class App extends PureComponent {
           <li><Link to="/">Home</Link></li>
           <li><Link to="/item">Item (async)</Link></li>
           <li><Link to="/item/details">Item (async) > Details</Link></li>
+          <li><Link to="/item/pupper">Item (async) > Pupper</Link></li>
           <li><Link to="/pupper">Supper-pupper!</Link></li>
           <li><Link to="/test">Redirect test</Link></li>
         </ul>

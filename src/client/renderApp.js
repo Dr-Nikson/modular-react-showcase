@@ -6,7 +6,6 @@ import { AppContainer } from 'react-hot-loader'
 import { Provider } from 'react-redux'
 
 import { BundleProvider, DataFetcher } from 'common/utils/bundle'
-import getRoutes from 'common/routing/getRoutes'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
@@ -23,7 +22,7 @@ export const renderApp = (
       <Provider store={store}>
         <ConnectedRouter history={history}>
           <BundleProvider store={bundleStore}>
-            <DataFetcher routes={getRoutes()}>
+            <DataFetcher>
               <Component />
             </DataFetcher>
           </BundleProvider>

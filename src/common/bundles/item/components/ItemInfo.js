@@ -19,7 +19,7 @@ const ItemInfo = () => (
     <br />
     FUCK YEAH, kek, lol, GOD DAMN Why it is so good?dsadsa
     <br />
-    <Link to="/item/p">Pupper sub bub boooooooooooob</Link>
+    <Link to="/item/pupper">Pupper sub bub boooooooooooob</Link>
     <br />
     IM SO HAPPPY SO SO SO SO SO <b>MUCH</b>
     <h3>GOD BLESS ME</h3>
@@ -33,7 +33,7 @@ const ItemInfo = () => (
     <b>does everything works correctly?</b>
     <Switch>
       <Route exact path="/item/details" component={DetailsComponent} />
-      <Route path="/item/p" component={PupperSubBundle} />
+      <Route path="/item/pupper" component={PupperSubBundle} />
     </Switch>
   </UsedTwice>
 )

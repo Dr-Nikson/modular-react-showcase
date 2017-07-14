@@ -33,16 +33,27 @@ const withBundles = (propertyNamespace: string = '') => {
         providedProps: {}
       }
 
+      constructor(props, context) {
+        super(props, context)
+        this.state = this.getProvidedProps()
+      }
+
+      getProvidedProps() {
+        const { getBundleRoutes } = this.context
+
+        return {
+          providedProps: {
+            [getPropertyName('routes')]: getBundleRoutes()
+          }
+        }
+      }
+
       componentDidMount() {
-        const { getBundleRoutes, subscribeOnBundles } = this.context
+        const { subscribeOnBundles } = this.context
 
         this.mounted = true
         this.unsubscribe = subscribeOnBundles(() => {
-          return this.mounted && this.setState({
-            providedProps: {
-              [getPropertyName('routes')]: getBundleRoutes()
-            }
-          })
+          return this.mounted && this.setState(this.getProvidedProps())
         })
       }
 

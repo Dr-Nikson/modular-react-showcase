@@ -105,7 +105,6 @@ export const rendererFactory = (template: Template) => {
       .then(() => loadBundlesForUrl(bundleStoreConfig, routes, req.url))
       // We need to load ALL the bundles, otherwise send 500 error
       .then(rejectFailedBundles)
-      .then(bundles => Promise.all(bundles))
       .then(doServerRender)
       .catch(getEmptyPageAndLog)
       .then((renderResult: RenderResult) => {

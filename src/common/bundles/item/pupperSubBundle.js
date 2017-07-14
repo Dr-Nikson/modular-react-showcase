@@ -14,7 +14,7 @@ export const bundle = {
         ...module,
         getRoutes: () => {
           return module.getRoutes
-            ? module.getRoutes().map(r => ({ ...r, path: '/items/p' + r.path }))
+            ? module.getRoutes().map(r => ({ ...r, path: '/item' + r.path }))
             : []
         },
       }

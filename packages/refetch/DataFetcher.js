@@ -57,26 +57,22 @@ class DataFetcher extends Component<void, DataFetcherProps, DataFetcherState> {
     if (!context.store) {
       throw new Error(
         'DataFetcher cannot find store in context. ' +
-        'Probably you need to wrap it redux provider'
+        'Probably you need to wrap it with redux provider'
       )
     }
   }
 
   loadAsyncData = (props: DataFetcherProps) => {
-    console.log('loadAsyncData')
     const { routes, stateSelector, routeProps } = props
     const { lastLoadedKey } = this.state
     const { store } = this.context
     const { location } = routeProps
-    console.log('loadAsyncData.beforeStateSelect')
     const { loadedLocations } = stateSelector(store.getState())
-    console.log('loadAsyncData.afterStateSelect')
     const locationAlreadyLoaded = (
       location.key !== lastLoadedKey &&
       isLocationAlreadyLoaded(loadedLocations, location)
     )
 
-    console.log('loadAsyncData.middle')
     if (
       isDataLoadedOnServer(loadedLocations, lastLoadedKey)
       || locationAlreadyLoaded
@@ -91,7 +87,6 @@ class DataFetcher extends Component<void, DataFetcherProps, DataFetcherState> {
   }
 
   componentDidMount() {
-    console.log('componentDidMount')
     this.loadAsyncData(this.props)
   }
 
@@ -100,11 +95,10 @@ class DataFetcher extends Component<void, DataFetcherProps, DataFetcherState> {
     const { routes: nextRoutes } = nextProps
     const { location: { key } } = this.props.routeProps
     const { routes } = this.props
-    console.log('componentWillReceiveProps')
+
     // note: state.lastLoadedKey shows last SUCCESSFULLY loaded location
     // as props.routeProps.location.key shows last rendered location
     if (key !== nextKey || routes !== nextRoutes) {
-      console.log('componentWillReceiveProps.insideIf')
       this.loadAsyncData(nextProps)
     }
   }
