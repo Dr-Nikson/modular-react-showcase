@@ -1,6 +1,6 @@
 // @flow
-import { Either } from 'ramda-fantasy'
 import { curry, values } from 'ramda'
+import * as either from 'flow-static-land/lib/Either'
 import createSubscribersStore from 'subscribers-store/createSubscribersStore'
 
 import loadAsyncBundle from './loadAsyncBundle'
@@ -8,6 +8,7 @@ import loadAsyncBundles from './loadAsyncBundles'
 import defaultHandleModule from './defaultHandleModule'
 import routesSelectorFactory from './routesSelectorFactory'
 
+import type { Either } from 'flow-static-land/lib/Either'
 import type { SubscribersStore } from 'subscribers-store/types'
 import type {
   AsyncRouteConfig,
@@ -78,6 +79,8 @@ const createBundleStore: CreateBundleStore = (
   const loadForUrl = (url: string): Promise<BundleMeta[]> => {
     const routes: RouteConfig[] = getRoutes()
       .filter((r: RouteConfig) => (
+        // TODO: refactor it... because type is failed. Yep. Again,
+        // $FlowFixMe
         r.bundle && !(bundles[r.bundle.name] && bundles[r.bundle.name].context)
       ))
     return loadForRoutes(routes, url)
@@ -101,13 +104,12 @@ const createBundleStore: CreateBundleStore = (
     return notifyAfterLoading(Promise.all(promises))
   }
 
-  // TODO: fix type --> migrate to flow-static-land
-  const getBundle = (name: string): any => {
+  const getBundle = (name: string): Either<*, BundleContext> => {
     const bundleMeta: ?BundleMeta = bundles[name]
 
     return bundleMeta && bundleMeta.error
-      ? Either.Left(bundleMeta.error)
-      : Either.Right(bundleMeta && bundleMeta.context)
+      ? either.left(bundleMeta.error)
+      : either.right(bundleMeta && bundleMeta.context)
   }
 
 

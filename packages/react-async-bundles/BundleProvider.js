@@ -1,8 +1,10 @@
 // @flow
 import React, { Component, PropTypes } from 'react'
+import * as either from 'flow-static-land/lib/Either'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
+import type { Either } from 'flow-static-land/lib/Either'
 import type {
   BundleContext,
   BundleMeta,
@@ -21,7 +23,7 @@ type BundleProviderProps = {
 
 type BundleProviderChildrenContext = {
   loadBundles: () => Promise<BundleMeta[]>,
-  getBundleComponent: (name: string) => ReactClass<any>,
+  getBundleComponent: (name: string) => Either<*, ?ReactClass<any>>,
   getBundleRoutes: () => RouteConfig[],
   subscribeOnBundles: (cb: Function) => Function,
 }
@@ -48,14 +50,16 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
       .loadForUrl(url)
   }
 
-  getBundleComponent = (bundleName: string): any => {
+  getBundleComponent = (bundleName: string): Either<*, ?ReactClass<any>> => {
     const { store } = this.props
 
-    return store
-      .getBundle(bundleName)
-      .map((context: ?BundleContext): ?ReactClass<any> => {
+    return either.map(
+      (context: ?BundleContext): ?ReactClass<any> => {
+        // TODO: use maybe here (?)
         return context && context.component
-      })
+      },
+      store.getBundle(bundleName)
+    )
   }
 
   getBundleRoutes = (): RouteConfig[] => {
@@ -93,10 +97,6 @@ class BundleProvider extends Component<void, BundleProviderProps, void> {
           console.error('BundleProvider:onUrlChangeLoading failed', err)
         })
     }
-  }
-
-  componentWillUnmount() {
-    // this.mounted = false
   }
 
   render() {

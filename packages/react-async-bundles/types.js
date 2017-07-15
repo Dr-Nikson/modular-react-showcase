@@ -1,6 +1,7 @@
 // @flow
 // $FlowFixMe
 import type { ReactClass } from 'react'
+import type { Either } from 'flow-static-land/lib/Either'
 
 export type BundleConfig = {
   name: string,
@@ -36,7 +37,7 @@ export type ServerRenderContext = {
 
 export type BundleStore = {
   invalidate: () => Promise<BundleMeta[]>,
-  getBundle: (name: string) => any, // TODO: fix type
+  getBundle: (name: string) => Either<*, BundleContext>,
   getRoutes: () => RouteConfig[],
   loadForUrl: (url: string) => Promise<BundleMeta[]>,
   subscribe: (cb: Function) => Function,

@@ -1,7 +1,6 @@
 // @flow
 import React, { PropTypes, PureComponent } from 'react'
-import { Either } from 'ramda-fantasy'
-
+import * as either from 'flow-static-land/lib/Either'
 import BundleError from 'common/routing/components/BundleError'
 
 // $FlowFixMe
@@ -40,19 +39,14 @@ const asyncBundle = (bundleName: string) => {
     getComponent(): ReactClass<any> {
       const { getBundleComponent } = this.context
 
-      return Either.either(
+      return either.either(
         error => BundleError,
         c => c || null,
         getBundleComponent(bundleName)
       )
     }
 
-    shouldComponentUpdate() {
-      return true
-    }
-
     componentDidMount() {
-      const { component } = this.state
       const { subscribeOnBundles } = this.context
 
       this.unsubscribe = subscribeOnBundles(() => {
