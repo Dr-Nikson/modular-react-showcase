@@ -2,25 +2,24 @@
 import { matchPath } from 'react-router-dom'
 import createHistory from 'history/createBrowserHistory'
 import { curry } from 'ramda'
+import loadAsyncBundles from 'react-async-bundles/loadAsyncBundles'
+import hotReloadHook from 'react-async-bundles/hotReloadHook'
+import extractReducers from 'redux-async-bundles/extractReducers'
+import handleReduxModule from 'redux-async-bundles/handleReduxModule'
 
 import getRoutes from 'common/routing/getRoutes'
 import createStore from 'common/redux/createStore'
 import { renderApp } from './renderApp'
 import App from 'client/App'
 import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
-import loadBundlesForUrl from 'react-async-bundles/loadBundlesForUrl'
-import handleReduxModule from 'redux-async-bundles/handleReduxModule'
-import extractReducers from 'redux-async-bundles/extractReducers'
 
 // $FlowFixMe
 import type { ReactClass } from 'react'
 import type { CurriedFunction2, CurriedFunction3 } from 'ramda'
 import type {
-  BundleContext,
   BundleMeta,
   BundleStoreCreatorConfig,
 } from 'react-async-bundles/types'
-import hotReloadHook from 'client/hotReloadHook'
 
 type RenderAppFunction = (component: ReactClass<any>) => void
 
@@ -41,8 +40,8 @@ const bootstrapApp = (): Promise<RenderAppFunction> => {
 
   return (
     Promise.resolve()
-      .then(() => loadBundlesForUrl(loaderConfig, routes, getUrl(history)))
-      // For opposite to SSR we need to render the app even if some of the
+      .then(() => loadAsyncBundles(loaderConfig, routes, getUrl(history)))
+      // In opposite to SSR we need to render the app even if some of the
       // bundles aren't successfully loaded (at least we can show error message)
       .then((initialBundles: BundleMeta[]): Function => {
         console.info('Bundles are loaded!')

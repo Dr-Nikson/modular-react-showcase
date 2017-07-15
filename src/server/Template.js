@@ -2,7 +2,6 @@
 
 type TemplateData = {
   html: string,
-  chunkNames: string[],
   initialState: Object,
 }
 
@@ -20,20 +19,10 @@ class Template {
     return this
   }
 
-  renderTemplate({ html, initialState, chunkNames }: TemplateData): string {
+  renderTemplate({ html, initialState }: TemplateData): string {
     return this._templateString
       .replace('{{html}}', html)
       .replace('{{initialState}}', JSON.stringify(initialState))
-      .replace('</body>', this._renderChunks(chunkNames) + '</body>')
-  }
-
-  _renderChunks(names: string[]): string {
-    return names
-      .map(
-        name =>
-          `<script type="text/javascript" src="/static/${name}.js" async></script>`
-      )
-      .join('')
   }
 }
 

@@ -8,6 +8,7 @@ import { Provider } from 'react-redux'
 import handleReduxModule from 'redux-async-bundles/handleReduxModule'
 import extractReducers from 'redux-async-bundles/extractReducers'
 import rejectFailedBundles from 'react-async-bundles/rejectFailedBundles'
+import loadAsyncBundles from 'react-async-bundles/loadAsyncBundles'
 import { createLocationFromUrl } from 'refetch'
 import loadDataForUrl from 'refetch/loadDataForUrl'
 
@@ -15,7 +16,6 @@ import App from 'client/App'
 import Template from './Template'
 import getRoutes from 'common/routing/getRoutes'
 import { BundleProvider } from 'common/utils/bundle'
-import loadBundlesForUrl from 'react-async-bundles/loadBundlesForUrl'
 import createStore from 'common/redux/createStore'
 import bundleStoreCreatorFactory from 'common/routing/bundleStoreCreatorFactory'
 
@@ -44,12 +44,11 @@ export const rendererFactory = (template: Template) => {
     html: string,
     initialState: Object = {}
   ): RenderResult => {
-    const { url, status, bundles = [] } = context
+    const { url, status } = context
     const isRedirected = !!url
-    const chunkNames = bundles.map(b => b.bundle.name)
 
     return {
-      body: template.renderTemplate({ html, chunkNames, initialState }),
+      body: template.renderTemplate({ html, initialState }),
       status: status || (isRedirected ? 301 : 200),
       url,
     }
@@ -102,7 +101,7 @@ export const rendererFactory = (template: Template) => {
     }
 
     Promise.resolve()
-      .then(() => loadBundlesForUrl(bundleStoreConfig, routes, req.url))
+      .then(() => loadAsyncBundles(bundleStoreConfig, routes, req.url))
       // We need to load ALL the bundles, otherwise send 500 error
       .then(rejectFailedBundles)
       .then(doServerRender)
