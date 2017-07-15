@@ -1,5 +1,5 @@
 // @flow
-import React, { PropTypes, PureComponent } from 'react'
+import React, { PureComponent } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import { Link, withRouter } from 'react-router-dom'
 
