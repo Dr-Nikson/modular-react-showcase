@@ -1,6 +1,6 @@
 // @flow
 import { bundle as pupperBundle } from 'common/bundles/pupper/bundle'
-import asyncBundle from 'react-async-bundles/asyncBundle'
+import { asyncBundle } from 'common/utils/bundle'
 
 import type { BundleModule } from 'react-async-bundles/types'
 
