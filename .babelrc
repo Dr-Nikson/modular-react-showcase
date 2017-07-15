@@ -1,0 +1,40 @@
+{
+  "plugins": [
+    "syntax-dynamic-import",
+    "transform-class-properties",
+    ["transform-object-rest-spread",
+      {
+        "useBuiltIns": true
+      }
+    ]
+  ],
+  "presets": [
+    [
+      "env",
+      {
+        "targets": {
+          "node": "current",
+          "browsers": "last 2 versions"
+        },
+        "modules": false,
+        "loose": true
+      }
+    ],
+    "react",
+    "flow"
+  ],
+  "env": {
+    "development": {
+      "plugins": [
+        "tcomb",
+        "react-hot-loader/babel",
+        "babel-plugin-tcomb"
+      ]
+    },
+    "production": {
+      "plugins": [
+        "transform-flow-strip-types"
+      ]
+    }
+  }
+}
